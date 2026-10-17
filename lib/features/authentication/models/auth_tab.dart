@@ -1,0 +1,1 @@
+enum AuthTab { login, register }
