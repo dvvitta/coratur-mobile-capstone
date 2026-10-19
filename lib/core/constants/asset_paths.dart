@@ -8,4 +8,5 @@ abstract final class AssetPaths {
   static const onboardIllustration2 = 'assets/images/onboardd 2.png';
   static const onboardIllustration3 = 'assets/images/onboardd 3.png';
   static const authElephant = 'assets/images/gajah login regris.png';
+  static const forgotPasswordElephant = 'assets/images/gajah lupa sandi.png';
 }

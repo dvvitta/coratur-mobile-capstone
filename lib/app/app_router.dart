@@ -4,6 +4,8 @@ import '../core/constants/app_routes.dart';
 import '../core/widgets/structure_placeholder_page.dart';
 import '../features/authentication/models/auth_tab.dart';
 import '../features/authentication/screens/auth_screen.dart';
+import '../features/authentication/screens/forgot_password_screen.dart';
+import '../features/authentication/screens/verify_reset_code_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/splash/screens/splash_screen.dart';
 
@@ -20,10 +22,11 @@ class AppRouter {
     AppRoutes.login: (_) => const AuthScreen(),
     AppRoutes.register: (_) =>
         const AuthScreen(initialTab: AuthTab.register),
-    AppRoutes.forgotPassword: (_) => const StructurePlaceholderPage(
-      title: 'Lupa Password',
-      routeName: AppRoutes.forgotPassword,
-    ),
+    AppRoutes.forgotPassword: (_) => const ForgotPasswordScreen(),
+    AppRoutes.verifyResetCode: (context) {
+      final email = ModalRoute.of(context)?.settings.arguments as String?;
+      return VerifyResetCodeScreen(email: email ?? 'psyy@gmail.com');
+    },
     AppRoutes.home: (_) => const StructurePlaceholderPage(
       title: 'Beranda',
       routeName: AppRoutes.home,
