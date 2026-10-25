@@ -7,7 +7,9 @@ abstract final class AppRoutes {
   static const forgotPassword = '/forgot-password';
   static const verifyResetCode = '/verify-reset-code';
   static const home = '/home';
+  static const missions = '/missions';
   static const sketchChallenge = '/sketch-challenge';
+  static const sketchChallengeLevels = '/sketch-challenge-levels';
   static const jelajahCilik = '/jelajah-cilik';
   static const sketchToStory = '/sketch-to-story';
   static const history = '/history';

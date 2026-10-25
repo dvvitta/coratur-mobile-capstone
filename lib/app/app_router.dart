@@ -6,7 +6,11 @@ import '../features/authentication/models/auth_tab.dart';
 import '../features/authentication/screens/auth_screen.dart';
 import '../features/authentication/screens/forgot_password_screen.dart';
 import '../features/authentication/screens/verify_reset_code_screen.dart';
+import '../features/main/screens/main_navigation_shell.dart';
+import '../features/missions/screens/missions_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
+import '../features/sketch_challenge/screens/sketch_challenge_level_screen.dart';
+import '../features/sketch_challenge/screens/sketch_challenge_screen.dart';
 import '../features/splash/screens/splash_screen.dart';
 
 /// Peta rute konseptual. Halaman penuh belum diimplementasikan;
@@ -27,14 +31,10 @@ class AppRouter {
       final email = ModalRoute.of(context)?.settings.arguments as String?;
       return VerifyResetCodeScreen(email: email ?? 'psyy@gmail.com');
     },
-    AppRoutes.home: (_) => const StructurePlaceholderPage(
-      title: 'Beranda',
-      routeName: AppRoutes.home,
-    ),
-    AppRoutes.sketchChallenge: (_) => const StructurePlaceholderPage(
-      title: 'Sketch Challenge',
-      routeName: AppRoutes.sketchChallenge,
-    ),
+    AppRoutes.home: (_) => const MainNavigationShell(),
+    AppRoutes.missions: (_) => const MissionsScreen(),
+    AppRoutes.sketchChallenge: (_) => const SketchChallengeScreen(),
+    AppRoutes.sketchChallengeLevels: (_) => const SketchChallengeLevelScreen(),
     AppRoutes.jelajahCilik: (_) => const StructurePlaceholderPage(
       title: 'Jelajah Cilik',
       routeName: AppRoutes.jelajahCilik,
@@ -43,14 +43,8 @@ class AppRouter {
       title: 'Sketch-to-Story',
       routeName: AppRoutes.sketchToStory,
     ),
-    AppRoutes.history: (_) => const StructurePlaceholderPage(
-      title: 'Riwayat',
-      routeName: AppRoutes.history,
-    ),
-    AppRoutes.profile: (_) => const StructurePlaceholderPage(
-      title: 'Profil',
-      routeName: AppRoutes.profile,
-    ),
+    AppRoutes.history: (_) => const MainNavigationShell(initialIndex: 1),
+    AppRoutes.profile: (_) => const MainNavigationShell(initialIndex: 2),
     AppRoutes.teacher: (_) => const StructurePlaceholderPage(
       title: 'Area Guru',
       routeName: AppRoutes.teacher,
