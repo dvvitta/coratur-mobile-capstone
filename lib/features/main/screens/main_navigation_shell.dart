@@ -9,9 +9,11 @@ class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({
     super.key,
     this.initialIndex = 0,
+    this.userName,
   });
 
   final int initialIndex;
+  final String? userName;
 
   @override
   State<MainNavigationShell> createState() => _MainNavigationShellState();
@@ -48,15 +50,16 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final name = widget.userName ?? 'Arka';
     return Scaffold(
       backgroundColor: Colors.white,
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
-        children: const [
-          HomeScreen(isEmbedded: true),
-          HistoryScreen(isEmbedded: true),
-          ProfileScreen(isEmbedded: true),
+        children: [
+          HomeScreen(isEmbedded: true, userName: name),
+          HistoryScreen(isEmbedded: true, userName: name),
+          ProfileScreen(isEmbedded: true, userName: name),
         ],
       ),
       bottomNavigationBar: CuratorBottomNav(

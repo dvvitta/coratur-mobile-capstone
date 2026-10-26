@@ -88,4 +88,57 @@ void main() {
 
     expect(find.text('Login Screen'), findsOneWidget);
   });
+
+  testWidgets('tap kode ruang kelas membuka bottom sheet dan input kode aktifkan tombol gabung',
+      (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    tester.view.physicalSize = const Size(412, 1055);
+    tester.view.devicePixelRatio = 1;
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ProfileScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap setting 'Kode Ruang Kelas'
+    await tester.tap(find.text('Kode Ruang Kelas'));
+    await tester.pumpAndSettle();
+
+    // Bottom sheet muncul
+    expect(find.text('Masukkan Kode Kelas'), findsOneWidget);
+    expect(find.text('Minta kode dari gurumu ya!'), findsOneWidget);
+    expect(find.byKey(const Key('classroom_close_button')), findsOneWidget);
+    expect(find.byKey(const Key('classroom_code_input')), findsOneWidget);
+    expect(
+      find.text('Gurumu bisa melihat gambar dan bintangmu\nuntuk membantu belajarmu.'),
+      findsOneWidget,
+    );
+    expect(find.text('Gabung Kelas'), findsOneWidget);
+
+    // 4 karakter: tombol belum aktif (wajib 6 karakter)
+    await tester.enterText(find.byKey(const Key('classroom_code_input')), '35A7');
+    await tester.pumpAndSettle();
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text('A'), findsOneWidget);
+
+    // Lengkapi 6 karakter (35A7B9) -> tombol aktif
+    await tester.enterText(find.byKey(const Key('classroom_code_input')), '35A7B9');
+    await tester.pumpAndSettle();
+
+    // Tap tombol gabung
+    await tester.tap(find.byKey(const Key('classroom_join_button')));
+    await tester.pumpAndSettle();
+
+    // Sheet tertutup & item pengaturan berubah ke kartu kelas terhubung
+    expect(find.text('Masukkan Kode Kelas'), findsNothing);
+    expect(find.text('Terhubung ke Kelas 2A'), findsOneWidget);
+    expect(find.text('Kelas 2A'), findsOneWidget);
+    expect(find.text('Guru: Bu Asri'), findsOneWidget);
+    expect(find.text('Terhubung'), findsOneWidget);
+  });
 }

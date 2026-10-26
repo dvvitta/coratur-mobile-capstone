@@ -3,12 +3,19 @@ import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/breakpoints.dart';
+import '../../../core/errors/app_failure.dart';
+import '../repositories/auth_repository.dart';
 import '../widgets/auth_colors.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/forgot_password_elephant.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+  const ForgotPasswordScreen({
+    super.key,
+    this.authRepository,
+  });
+
+  final AuthRepository? authRepository;
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -52,14 +59,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid || _submitting) return;
 
+    final email = _emailController.text.trim();
     setState(() => _submitting = true);
-    if (!mounted) return;
-    setState(() => _submitting = false);
 
-    Navigator.of(context).pushNamed(
-      AppRoutes.verifyResetCode,
-      arguments: _emailController.text.trim(),
-    );
+    try {
+      if (widget.authRepository != null) {
+        await widget.authRepository!.forgotPassword(email: email);
+      }
+      if (!mounted) return;
+
+      Navigator.of(context).pushNamed(
+        AppRoutes.verifyResetCode,
+        arguments: email,
+      );
+    } on AppFailure catch (failure) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failure.message)));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   String? _validateEmail(String? value) {

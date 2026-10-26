@@ -3,15 +3,19 @@ import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/breakpoints.dart';
+import '../../../core/errors/app_failure.dart';
+import '../repositories/auth_repository.dart';
 import '../widgets/auth_colors.dart';
 
 class VerifyResetCodeScreen extends StatefulWidget {
   const VerifyResetCodeScreen({
     super.key,
     this.email = 'psyy@gmail.com',
+    this.authRepository,
   });
 
   final String email;
+  final AuthRepository? authRepository;
 
   @override
   State<VerifyResetCodeScreen> createState() => _VerifyResetCodeScreenState();
@@ -56,20 +60,47 @@ class _VerifyResetCodeScreenState extends State<VerifyResetCodeScreen> {
     Navigator.of(context).pushReplacementNamed(AppRoutes.forgotPassword);
   }
 
-  void _resend() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Kode baru dikirim ke ${widget.email}')),
-    );
+  Future<void> _resend() async {
+    try {
+      if (widget.authRepository != null) {
+        await widget.authRepository!.forgotPassword(email: widget.email);
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Kode baru dikirim ke ${widget.email}')),
+      );
+    } on AppFailure catch (failure) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failure.message)));
+    }
   }
 
-  void _verify() {
+  Future<void> _verify() async {
     if (!_isComplete || _submitting) return;
 
     setState(() => _submitting = true);
-    if (!mounted) return;
-    setState(() => _submitting = false);
 
-    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    try {
+      if (widget.authRepository != null) {
+        await widget.authRepository!.verifyResetCode(
+          email: widget.email,
+          code: _code,
+        );
+      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kode terverifikasi!')),
+      );
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    } on AppFailure catch (failure) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failure.message)));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override

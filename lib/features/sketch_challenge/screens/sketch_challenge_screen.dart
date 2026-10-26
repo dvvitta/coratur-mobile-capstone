@@ -114,23 +114,22 @@ class _SketchChallengeScreenState extends State<SketchChallengeScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F6FE),
         body: SafeArea(
-          child: ScrollConfiguration(
-            behavior: const ScrollBehavior().copyWith(overscroll: false),
-            child: ListView(
-              physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _buildHeader(),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 _buildTitleAndStep(),
-                const SizedBox(height: 16),
-                _buildDrawingCanvas(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                Expanded(child: _buildDrawingCanvas()),
+                const SizedBox(height: 12),
                 _buildPalette(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 _buildFinishButton(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
               ],
             ),
           ),
@@ -280,7 +279,6 @@ class _SketchChallengeScreenState extends State<SketchChallengeScreen> {
 
   Widget _buildDrawingCanvas() {
     return Container(
-      height: 440,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),

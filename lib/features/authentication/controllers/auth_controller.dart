@@ -1,12 +1,17 @@
 import '../../../core/constants/app_routes.dart';
 import '../../../core/errors/app_failure.dart';
 import '../models/auth_tab.dart';
+import '../models/auth_user.dart';
 import '../repositories/auth_repository.dart';
 
 class AuthController {
-  AuthController({required this.repository});
+  AuthController({
+    required this.repository,
+    this.onUserAuthenticated,
+  });
 
   final AuthRepository repository;
+  final void Function(AuthUser user)? onUserAuthenticated;
 
   String? validateName(String value) {
     if (value.trim().isEmpty) {
@@ -44,18 +49,22 @@ class AuthController {
     required bool rememberMe,
   }) async {
     try {
+      final AuthUser? user;
       if (tab == AuthTab.login) {
-        await repository.login(
+        user = await repository.login(
           email: email.trim(),
           password: password,
           rememberMe: rememberMe,
         );
       } else {
-        await repository.register(
+        user = await repository.register(
           name: name.trim(),
           email: email.trim(),
           password: password,
         );
+      }
+      if (user != null && onUserAuthenticated != null) {
+        onUserAuthenticated!(user);
       }
     } on AppFailure {
       rethrow;

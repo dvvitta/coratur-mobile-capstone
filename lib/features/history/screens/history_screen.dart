@@ -25,6 +25,49 @@ class HistoryScreen extends StatefulWidget {
   final bool isEmbedded;
   final List<HistoryArtwork>? initialArtworks;
 
+  static const List<HistoryArtwork> mockArtworks = [
+    HistoryArtwork(
+      id: 'matahari',
+      title: 'Matahari',
+      levelLabel: 'Level 3 • Kupu-kupu',
+      dateLabel: '12 Apr 2025',
+      imageAssetPath: AssetPaths.historyArtMatahari,
+      status: ArtworkStatus.completed,
+      earnedStars: 3,
+      totalStars: 3,
+    ),
+    HistoryArtwork(
+      id: 'mobil',
+      title: 'Mobil',
+      levelLabel: 'Level 2 • Kendaraan',
+      dateLabel: '10 Apr 2025',
+      imageAssetPath: AssetPaths.historyArtMobil,
+      status: ArtworkStatus.completed,
+      earnedStars: 2,
+      totalStars: 3,
+    ),
+    HistoryArtwork(
+      id: 'kucing',
+      title: 'Kucing',
+      levelLabel: 'Level 2 • Hewan',
+      dateLabel: '8 Apr 2025',
+      imageAssetPath: AssetPaths.historyArtKucing,
+      status: ArtworkStatus.completed,
+      earnedStars: 2,
+      totalStars: 3,
+    ),
+    HistoryArtwork(
+      id: 'bunga',
+      title: 'Bunga',
+      levelLabel: 'Level 1 • Benda Sekitar',
+      dateLabel: '6 Apr 2025',
+      imageAssetPath: AssetPaths.historyArtBunga,
+      status: ArtworkStatus.completed,
+      earnedStars: 1,
+      totalStars: 3,
+    ),
+  ];
+
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
@@ -37,50 +80,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void initState() {
     super.initState();
     _currentFilter = widget.initialFilter;
-    // Mock artworks dari desain frame 'history full isi.png'
+    // Jika user default mock 'Arka', gunakan data demo. Jika user login asli tapi belum beraktivitas, tampilkan list kosong.
     _allArtworks = widget.initialArtworks ??
-        const [
-          HistoryArtwork(
-            id: 'matahari',
-            title: 'Matahari',
-            levelLabel: 'Level 3 • Kupu-kupu',
-            dateLabel: '12 Apr 2025',
-            imageAssetPath: AssetPaths.historyArtMatahari,
-            status: ArtworkStatus.completed,
-            earnedStars: 3,
-            totalStars: 3,
-          ),
-          HistoryArtwork(
-            id: 'mobil',
-            title: 'Mobil',
-            levelLabel: 'Level 2 • Kendaraan',
-            dateLabel: '10 Apr 2025',
-            imageAssetPath: AssetPaths.historyArtMobil,
-            status: ArtworkStatus.completed,
-            earnedStars: 2,
-            totalStars: 3,
-          ),
-          HistoryArtwork(
-            id: 'kucing',
-            title: 'Kucing',
-            levelLabel: 'Level 2 • Hewan',
-            dateLabel: '8 Apr 2025',
-            imageAssetPath: AssetPaths.historyArtKucing,
-            status: ArtworkStatus.completed,
-            earnedStars: 2,
-            totalStars: 3,
-          ),
-          HistoryArtwork(
-            id: 'bunga',
-            title: 'Bunga',
-            levelLabel: 'Level 1 • Benda Sekitar',
-            dateLabel: '6 Apr 2025',
-            imageAssetPath: AssetPaths.historyArtBunga,
-            status: ArtworkStatus.completed,
-            earnedStars: 1,
-            totalStars: 3,
-          ),
-        ];
+        (widget.userName == 'Arka' ? HistoryScreen.mockArtworks : const []);
   }
 
   void _onFilterChanged(HistoryFilter filter) {
@@ -190,53 +192,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-      child: Row(
-        children: [
-          // Circular Purple Back Button
-          Material(
-            color: Colors.transparent,
-            shape: const CircleBorder(),
-            child: InkWell(
-              key: const Key('history_back_button'),
-              customBorder: const CircleBorder(),
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF8F6AF7),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x3343309A),
-                      blurRadius: 8,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-
-          // Header Title
-          const Text(
-            'Karya Hebatku',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF3730A3),
-              letterSpacing: -0.4,
-            ),
-          ),
-        ],
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 4),
+      child: Text(
+        'Karya Hebatku',
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFF1E1B4B),
+          letterSpacing: -0.5,
+        ),
       ),
     );
   }
@@ -266,7 +231,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               fontSize: 18,
               fontWeight: FontWeight.w900,
               color: Color(0xFF1E1B4B),
-              letterSpacing: -0.3,
+              letterSpacing: -0.4,
             ),
           ),
           const SizedBox(height: 4),
@@ -275,7 +240,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF6B558B),
+              color: Color(0xFF7C719C),
             ),
           ),
           if (hasArtworks) ...[
@@ -446,7 +411,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: isActive ? Colors.white : const Color(0xFF645091),
+                color: isActive ? Colors.white : const Color(0xFF7C719C),
               ),
             ),
           ],
@@ -668,7 +633,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF756F86),
+                color: Color(0xFF7C719C),
                 height: 1.35,
               ),
             ),

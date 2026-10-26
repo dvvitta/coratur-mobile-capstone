@@ -8,22 +8,22 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
     super.key,
     this.userName = 'Arka',
-    this.userLevelTitle = 'Pelukis Cilik • Level 3',
-    this.userLevelProgress = 0.6,
-    this.remainingStarsText = '2 bintang lagi jadi Pelukis Hebat!',
-    this.totalDrawings = 4,
-    this.totalStars = 8,
-    this.streakDays = 3,
+    this.userLevelTitle,
+    this.userLevelProgress,
+    this.remainingStarsText,
+    this.totalDrawings,
+    this.totalStars,
+    this.streakDays,
     this.isEmbedded = false,
   });
 
   final String userName;
-  final String userLevelTitle;
-  final double userLevelProgress;
-  final String remainingStarsText;
-  final int totalDrawings;
-  final int totalStars;
-  final int streakDays;
+  final String? userLevelTitle;
+  final double? userLevelProgress;
+  final String? remainingStarsText;
+  final int? totalDrawings;
+  final int? totalStars;
+  final int? streakDays;
   final bool isEmbedded;
 
   @override
@@ -33,6 +33,27 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isSoundEnabled = true;
   bool _isMusicEnabled = true;
+  String? _joinedClassName;
+  String? _joinedTeacherName;
+
+  bool get _isDefaultMock => widget.userName == 'Arka';
+
+  String get _levelTitle =>
+      widget.userLevelTitle ??
+      (_isDefaultMock ? 'Pelukis Cilik • Level 3' : 'Pelukis Pemula • Level 1');
+
+  double get _levelProgress =>
+      widget.userLevelProgress ?? (_isDefaultMock ? 0.6 : 0.0);
+
+  String get _remainingText =>
+      widget.remainingStarsText ??
+      (_isDefaultMock
+          ? '2 bintang lagi jadi Pelukis Hebat!'
+          : 'Kumpulkan 5 bintang untuk naik level!');
+
+  int get _drawings => widget.totalDrawings ?? (_isDefaultMock ? 4 : 0);
+  int get _stars => widget.totalStars ?? (_isDefaultMock ? 8 : 0);
+  int get _streak => widget.streakDays ?? (_isDefaultMock ? 3 : 1);
 
   void _onToggleSound(bool value) {
     setState(() {
@@ -46,10 +67,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void _onOpenClassroomCode() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur Kode Ruang Kelas segera hadir!')),
+  Future<void> _onOpenClassroomCode() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (_) => const _ClassroomCodeSheet(),
     );
+
+    if (result != null && mounted) {
+      setState(() {
+        _joinedClassName = 'Kelas 2A';
+        _joinedTeacherName = 'Guru: Bu Asri';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terhubung ke $_joinedClassName'),
+          backgroundColor: const Color(0xFF6C42F5),
+        ),
+      );
+    }
   }
 
   void _onOpenHelp() {
@@ -308,7 +346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                widget.userLevelTitle,
+                                _levelTitle,
                                 style: const TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w800,
@@ -326,7 +364,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: LinearProgressIndicator(
-                            value: widget.userLevelProgress,
+                            value: _levelProgress,
                             minHeight: 7,
                             backgroundColor: const Color(0xFFDCD7F6),
                             valueColor: const AlwaysStoppedAnimation<Color>(
@@ -338,7 +376,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         // Progress hint
                         Text(
-                          widget.remainingStarsText,
+                          _remainingText,
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -367,7 +405,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.palette_rounded,
             iconBgColor: const Color(0xFFE2FBEA),
             iconColor: const Color(0xFF10BD8A),
-            value: '${widget.totalDrawings}',
+            value: '$_drawings',
             label: 'Gambar',
           ),
         ),
@@ -380,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.star_rounded,
             iconBgColor: const Color(0xFFFFF6D6),
             iconColor: const Color(0xFFFFB800),
-            value: '${widget.totalStars}',
+            value: '$_stars',
             label: 'Bintang',
           ),
         ),
@@ -393,7 +431,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.local_fire_department_rounded,
             iconBgColor: const Color(0xFFFFEBE5),
             iconColor: const Color(0xFFFF6B4A),
-            value: '${widget.streakDays}',
+            value: '$_streak',
             label: 'Hari\nberuntun',
           ),
         ),
@@ -501,15 +539,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 3. Kode Ruang Kelas
-        _buildSettingCard(
-          icon: Icons.school_rounded,
-          iconBgColor: const Color(0xFFFFF4D6),
-          iconColor: const Color(0xFFF59E0B),
-          title: 'Kode Ruang Kelas',
-          onTap: _onOpenClassroomCode,
-          trailing: _buildChevronButton(),
-        ),
+        // 3. Kode Ruang Kelas / Kelas Terhubung
+        if (_joinedClassName != null)
+          _buildJoinedClassroomCard()
+        else
+          _buildSettingCard(
+            icon: Icons.school_rounded,
+            iconBgColor: const Color(0xFFFFF4D6),
+            iconColor: const Color(0xFFF59E0B),
+            title: 'Kode Ruang Kelas',
+            onTap: _onOpenClassroomCode,
+            trailing: _buildChevronButton(),
+          ),
         const SizedBox(height: 12),
 
         // 4. Bantuan
@@ -522,6 +563,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
           trailing: _buildChevronButton(),
         ),
       ],
+    );
+  }
+
+  Widget _buildJoinedClassroomCard() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const Key('profile_joined_classroom_card'),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Detail $_joinedClassName ($_joinedTeacherName)'),
+              backgroundColor: const Color(0xFF6C42F5),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFECEEF8), width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A43309A),
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Golden yellow lock container
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.lock_outline_rounded,
+                  size: 24,
+                  color: Color(0xFFB45309),
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              // Title and Teacher name
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _joinedClassName ?? 'Kelas 2A',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1E1B4B),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _joinedTeacherName ?? 'Guru: Bu Asri',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4A3E6D),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Green pill badge 'Terhubung'
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: Color(0xFF047857),
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'Terhubung',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF047857),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // Right chevron
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 22,
+                color: Color(0xFF7C6E9B),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -740,4 +897,359 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+
+// ─── Classroom Code Bottom Sheet ───────────────────────────────────────────
+
+class _ClassroomCodeSheet extends StatefulWidget {
+  const _ClassroomCodeSheet();
+
+  @override
+  State<_ClassroomCodeSheet> createState() => _ClassroomCodeSheetState();
+}
+
+class _ClassroomCodeSheetState extends State<_ClassroomCodeSheet> {
+  static const int _codeLength = 6;
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  bool get _isComplete => _controller.text.trim().length == _codeLength;
+
+  void _onJoin() {
+    if (!_isComplete) return;
+    final code = _controller.text.trim();
+    Navigator.of(context).pop(code);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final text = _controller.text;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDDD6FE),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Header row with close button (X)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  key: const Key('classroom_close_button'),
+                  customBorder: const CircleBorder(),
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF3EFFE),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: Color(0xFF2B1E70),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Yellow Circle with Classroom/People Icon
+          Center(
+            child: Container(
+              width: 68,
+              height: 68,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEF3C7),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.people_outline_rounded,
+                size: 34,
+                color: Color(0xFFB45309),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Title
+          const Text(
+            'Masukkan Kode Kelas',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1E1B4B),
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // Subtitle
+          const Text(
+            'Minta kode dari gurumu ya!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF736A8C),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 6 PIN Boxes (tap to focus hidden text field)
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _focusNode.requestFocus(),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Hidden real textfield
+                Opacity(
+                  opacity: 0,
+                  child: TextField(
+                    key: const Key('classroom_code_input'),
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.characters,
+                    maxLength: _codeLength,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      counterText: '',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+
+                // Visual 6 rounded boxes row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(_codeLength, (index) {
+                    final isFilled = index < text.length;
+                    final isCurrent = index == text.length && _focusNode.hasFocus;
+                    final char = isFilled ? text[index] : '';
+
+                    return _buildPinBox(
+                      char: char,
+                      isFilled: isFilled,
+                      isCurrent: isCurrent,
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Disclaimer box with Eye Icon
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3EFFE),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.visibility_outlined,
+                  size: 22,
+                  color: Color(0xFF6C42F5),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Gurumu bisa melihat gambar dan bintangmu\nuntuk membantu belajarmu.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF4C3B78),
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Button 'Gabung Kelas'
+          SizedBox(
+            height: 52,
+            child: FilledButton(
+              key: const Key('classroom_join_button'),
+              onPressed: _isComplete ? _onJoin : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: _isComplete
+                    ? const Color(0xFF6C42F5)
+                    : const Color(0xFFDDD6FE),
+                disabledBackgroundColor: const Color(0xFFDDD6FE),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'Gabung Kelas',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: _isComplete
+                      ? Colors.white
+                      : const Color(0xFF7C3AED),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPinBox({
+    required String char,
+    required bool isFilled,
+    required bool isCurrent,
+  }) {
+    // Ukuran box: proporsional tinggi ~62, lebar ~48, rounded 14
+    return SizedBox(
+      width: 48,
+      height: 62,
+      child: CustomPaint(
+        painter: isFilled || isCurrent
+            ? null
+            : _DashedBorderPainter(
+                color: const Color(0xFFC4B5FD),
+                borderRadius: 14,
+                strokeWidth: 1.8,
+                dashLength: 5,
+                gapLength: 3.5,
+              ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isFilled ? const Color(0xFFECE7F9) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: isCurrent
+                ? Border.all(color: const Color(0xFF6C42F5), width: 2)
+                : isFilled
+                    ? Border.all(color: const Color(0xFFD4CCE8), width: 1.2)
+                    : null,
+          ),
+          alignment: Alignment.center,
+          child: isFilled
+              ? Text(
+                  char,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E1B4B),
+                  ),
+                )
+              : isCurrent
+                  ? Container(
+                      width: 2,
+                      height: 24,
+                      color: const Color(0xFF6C42F5),
+                    )
+                  : null,
+        ),
+      ),
+    );
+  }
+}
+
+/// Custom painter untuk border putus-putus (dashed rounded rectangle)
+class _DashedBorderPainter extends CustomPainter {
+  const _DashedBorderPainter({
+    required this.color,
+    required this.borderRadius,
+    required this.strokeWidth,
+    required this.dashLength,
+    required this.gapLength,
+  });
+
+  final Color color;
+  final double borderRadius;
+  final double strokeWidth;
+  final double dashLength;
+  final double gapLength;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(borderRadius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final dashedPath = Path();
+
+    for (final metric in path.computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final nextDistance = distance + dashLength;
+        dashedPath.addPath(
+          metric.extractPath(distance, nextDistance.clamp(0.0, metric.length)),
+          Offset.zero,
+        );
+        distance += dashLength + gapLength;
+      }
+    }
+
+    canvas.drawPath(dashedPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) =>
+      color != oldDelegate.color ||
+      borderRadius != oldDelegate.borderRadius ||
+      strokeWidth != oldDelegate.strokeWidth ||
+      dashLength != oldDelegate.dashLength ||
+      gapLength != oldDelegate.gapLength;
 }
