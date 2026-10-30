@@ -8,21 +8,23 @@ class SketchooApp extends StatelessWidget {
   const SketchooApp({
     super.key,
     required this.dependencies,
-    this.router = const AppRouter(),
+    this.router,
   });
 
   final AppDependencies dependencies;
-  final AppRouter router;
+  final AppRouter? router;
 
   @override
   Widget build(BuildContext context) {
+    final activeRouter = router ?? AppRouter(dependencies: dependencies);
+
     return MaterialApp(
       title: 'SKETCHOO',
       debugShowCheckedModeBanner: dependencies.isMock,
       locale: const Locale('id'),
       theme: AppTheme.light(),
-      initialRoute: router.initialRoute,
-      routes: router.routes,
+      initialRoute: activeRouter.initialRoute,
+      routes: activeRouter.routes,
     );
   }
 }

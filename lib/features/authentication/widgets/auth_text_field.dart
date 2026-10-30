@@ -7,18 +7,24 @@ class AuthTextField extends StatelessWidget {
     super.key,
     required this.label,
     required this.controller,
+    this.hintText,
+    this.prefix,
     this.obscureText = false,
     this.keyboardType,
     this.suffix,
     this.validator,
+    this.onChanged,
   });
 
   final String label;
   final TextEditingController controller;
+  final String? hintText;
+  final Widget? prefix;
   final bool obscureText;
   final TextInputType? keyboardType;
   final Widget? suffix;
   final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +45,15 @@ class AuthTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          onChanged: onChanged,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: const TextStyle(
+              color: Color(0xFFC7C5D0),
+              fontSize: 14,
+            ),
+            prefixIcon: prefix,
             suffixIcon: suffix,
             filled: true,
             fillColor: Colors.white,
