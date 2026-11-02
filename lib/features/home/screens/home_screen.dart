@@ -24,18 +24,36 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final List<MissionItem> _missions;
+  List<MissionItem> _missions = const [];
+  var _missionsLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _missions = widget.missionRepository.getMissions();
+    _loadMissions();
+  }
+
+  Future<void> _loadMissions() async {
+    try {
+      final missions = await widget.missionRepository.fetchMissions();
+      if (!mounted) return;
+      setState(() {
+        _missions = missions;
+        _missionsLoading = false;
+      });
+    } on Object {
+      // Beranda tetap tampil walau pratinjau misi gagal dimuat.
+      if (!mounted) return;
+      setState(() {
+        _missionsLoading = false;
+      });
+    }
   }
 
   void _onNotification() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Belum ada notifikasi baru.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Belum ada notifikasi baru.')));
   }
 
   void _onOpenMissions() {
@@ -65,8 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildStickyHeader(),
                   Expanded(
                     child: ScrollConfiguration(
-                      behavior:
-                          const ScrollBehavior().copyWith(overscroll: false),
+                      behavior: const ScrollBehavior().copyWith(
+                        overscroll: false,
+                      ),
                       child: ListView(
                         physics: const ClampingScrollPhysics(),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -143,10 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Text(
-                  '✨',
-                  style: TextStyle(fontSize: 18),
-                ),
+                const Text('✨', style: TextStyle(fontSize: 18)),
               ],
             ),
           ),
@@ -183,16 +199,9 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFFD6CEF0),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFD6CEF0), width: 1.2),
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFFF1E6EE),
-            Color(0xFFE2EFF3),
-            Color(0xFFD5F3EA),
-          ],
+          colors: [Color(0xFFF1E6EE), Color(0xFFE2EFF3), Color(0xFFD5F3EA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -433,39 +442,53 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMissionsList() {
-    // 3 item untuk beranda sesuai Gambar 1:
-    // 1. Menggambar apel merah (Sketch Challenge • ★ +20) -> Purple filled button
-    // 2. Pakai 5 warna berbeda (Progress 3/5) -> White circular play button
-    // 3. Selesaikan 3 permainan (Selesai · bintang sudah didapatkan) -> Solid green check
-    final previewList = [
-      _missions[0], // Menggambar apel merah
-      _missions[3], // Pakai 5 warna berbeda
-      _missions[1], // Selesaikan 3 permainan
-    ];
+    if (_missionsLoading) {
+      return const SizedBox(
+        height: 64,
+        child: Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.4),
+          ),
+        ),
+      );
+    }
+
+    // Tampilkan maksimal 3 misi hari ini; gaya kartu mengikuti statusnya.
+    final preview = _missions.take(3).toList();
+    if (preview.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Text(
+          'Belum ada misi hari ini.',
+          style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        ),
+      );
+    }
+
+    void openMission(MissionItem mission) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Buka ${mission.title}')));
+    }
 
     return Column(
       children: [
-        _HomeMissionAppleCard(
-          mission: previewList[0],
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Buka ${previewList[0].title}')),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        _HomeMissionColorsCard(
-          mission: previewList[1],
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Buka ${previewList[1].title}')),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        _HomeMissionDoneCard(
-          mission: previewList[2],
-        ),
+        for (var index = 0; index < preview.length; index++) ...[
+          if (index > 0) const SizedBox(height: 12),
+          if (preview[index].status == MissionStatus.completed)
+            _HomeMissionDoneCard(mission: preview[index])
+          else if (preview[index].status == MissionStatus.inProgress)
+            _HomeMissionColorsCard(
+              mission: preview[index],
+              onTap: () => openMission(preview[index]),
+            )
+          else
+            _HomeMissionAppleCard(
+              mission: preview[index],
+              onTap: () => openMission(preview[index]),
+            ),
+        ],
       ],
     );
   }
@@ -631,10 +654,7 @@ class _LearningCard extends StatelessWidget {
 }
 
 class _HomeMissionAppleCard extends StatelessWidget {
-  const _HomeMissionAppleCard({
-    required this.mission,
-    required this.onTap,
-  });
+  const _HomeMissionAppleCard({required this.mission, required this.onTap});
 
   final MissionItem mission;
   final VoidCallback onTap;
@@ -659,10 +679,15 @@ class _HomeMissionAppleCard extends StatelessWidget {
             ),
             child: Center(
               child: Image.asset(
-                AssetPaths.missionApple,
+                mission.iconPath,
                 width: 32,
                 height: 32,
                 fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.brush_rounded,
+                  size: 28,
+                  color: Color(0xFF5B34EA),
+                ),
               ),
             ),
           ),
@@ -683,7 +708,7 @@ class _HomeMissionAppleCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text.rich(
                   TextSpan(
-                    text: 'Sketch Challenge • ',
+                    text: '${mission.category} • ',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -699,9 +724,9 @@ class _HomeMissionAppleCard extends StatelessWidget {
                           fit: BoxFit.contain,
                         ),
                       ),
-                      const TextSpan(
-                        text: ' +20',
-                        style: TextStyle(
+                      TextSpan(
+                        text: ' +${mission.reward}',
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF1E293B),
@@ -737,10 +762,7 @@ class _HomeMissionAppleCard extends StatelessWidget {
 }
 
 class _HomeMissionColorsCard extends StatelessWidget {
-  const _HomeMissionColorsCard({
-    required this.mission,
-    required this.onTap,
-  });
+  const _HomeMissionColorsCard({required this.mission, required this.onTap});
 
   final MissionItem mission;
   final VoidCallback onTap;
@@ -765,10 +787,15 @@ class _HomeMissionColorsCard extends StatelessWidget {
             ),
             child: Center(
               child: Image.asset(
-                AssetPaths.missionPalette,
+                mission.iconPath,
                 width: 34,
                 height: 34,
                 fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.palette_rounded,
+                  size: 28,
+                  color: Color(0xFF5B34EA),
+                ),
               ),
             ),
           ),
@@ -786,7 +813,16 @@ class _HomeMissionColorsCard extends StatelessWidget {
                     color: Color(0xFF1E293B),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
+                Text(
+                  '${mission.category} • ★ +${mission.reward}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Expanded(
@@ -841,9 +877,7 @@ class _HomeMissionColorsCard extends StatelessWidget {
 }
 
 class _HomeMissionDoneCard extends StatelessWidget {
-  const _HomeMissionDoneCard({
-    required this.mission,
-  });
+  const _HomeMissionDoneCard({required this.mission});
 
   final MissionItem mission;
 
@@ -867,10 +901,15 @@ class _HomeMissionDoneCard extends StatelessWidget {
             ),
             child: Center(
               child: Image.asset(
-                AssetPaths.missionGames,
+                mission.iconPath,
                 width: 32,
                 height: 32,
                 fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.check_circle_rounded,
+                  size: 28,
+                  color: Color(0xFF16A34A),
+                ),
               ),
             ),
           ),
@@ -889,9 +928,9 @@ class _HomeMissionDoneCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Selesai · bintang sudah didapatkan',
-                  style: TextStyle(
+                Text(
+                  '${mission.category} • Selesai · +${mission.reward}',
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF16A34A),

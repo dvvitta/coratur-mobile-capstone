@@ -1,18 +1,21 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../core/errors/app_failure.dart';
+import '../../features/authentication/models/auth_session.dart';
 import '../../features/authentication/models/auth_user.dart';
+import '../../features/authentication/models/register_result.dart';
 import '../../features/authentication/repositories/auth_repository.dart';
+import 'api_error.dart';
 
 /// Remote HTTP Auth Repository menghubungkan Flutter ke NestJS Backend.
 class RemoteAuthRepository implements AuthRepository {
-  RemoteAuthRepository({
-    required this.baseUrl,
-    http.Client? client,
-  }) : _client = client ?? http.Client();
+  RemoteAuthRepository({required this.baseUrl, http.Client? client})
+    : _client = client ?? http.Client();
 
   final String baseUrl;
   final http.Client _client;
@@ -26,58 +29,98 @@ class RemoteAuthRepository implements AuthRepository {
   }
 
   Map<String, String> get _headers => {
-        HttpHeaders.contentTypeHeader: 'application/json',
-        HttpHeaders.acceptHeader: 'application/json',
-      };
+    HttpHeaders.contentTypeHeader: 'application/json',
+    HttpHeaders.acceptHeader: 'application/json',
+  };
 
   @override
-  Future<AuthUser?> login({
+  Future<AuthSession> login({
     required String email,
     required String password,
     required bool rememberMe,
   }) async {
-    final response = await _post(
-      '/auth/login',
-      {'email': email, 'password': password},
-    );
+    final response = await _post('/auth/login', {
+      'email': email,
+      'password': password,
+    });
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       try {
         final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic> && decoded['user'] is Map<String, dynamic>) {
-          return AuthUser.fromJson(decoded['user'] as Map<String, dynamic>);
+        if (decoded is Map<String, dynamic> &&
+            decoded['user'] is Map<String, dynamic>) {
+          final token = decoded['access_token'];
+          return AuthSession(
+            user: AuthUser.fromJson(decoded['user'] as Map<String, dynamic>),
+            accessToken: token is String && token.isNotEmpty ? token : null,
+          );
         }
-      } catch (_) {}
-      return null;
+      } catch (_) {
+        // Jatuh ke error di bawah: respons backend tidak dikenali.
+      }
+      throw const AppFailure(
+        message: 'Respons login tidak dikenali. Coba lagi.',
+        isRetryable: true,
+      );
     }
 
     _handleError(response);
   }
 
   @override
-  Future<AuthUser?> register({
+  Future<RegisterResult> register({
     required String name,
     required String email,
     required String password,
   }) async {
-    final response = await _post(
-      '/auth/register',
-      {'name': name, 'email': email, 'password': password},
-    );
+    final response = await _post('/auth/register', {
+      'name': name,
+      'email': email,
+      'password': password,
+    });
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       try {
         final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic> && decoded['user'] is Map<String, dynamic>) {
-          final userJson = decoded['user'] as Map<String, dynamic>;
-          return AuthUser(
-            id: userJson['id'] as String? ?? '',
-            name: userJson['name'] as String? ?? name,
-            email: userJson['email'] as String? ?? email,
+        if (decoded is Map<String, dynamic>) {
+          final userJson = decoded['user'];
+          final user = userJson is Map<String, dynamic>
+              ? AuthUser(
+                  id: userJson['id'] as String? ?? '',
+                  name: userJson['name'] as String? ?? name,
+                  email: userJson['email'] as String? ?? email,
+                )
+              : AuthUser(id: '', name: name, email: email);
+
+          return RegisterResult(
+            user: user,
+            accessToken:
+                decoded['access_token'] is String &&
+                    (decoded['access_token'] as String).isNotEmpty
+                ? decoded['access_token'] as String
+                : null,
+            requiresEmailConfirmation:
+                decoded['requires_email_confirmation'] as bool? ?? false,
+            message: decoded['message'] as String?,
           );
         }
-      } catch (_) {}
-      return AuthUser(id: '', name: name, email: email);
+      } catch (_) {
+        // Respons tidak terbaca: anggap pendaftaran berhasil tanpa verifikasi.
+      }
+      return RegisterResult(
+        user: AuthUser(id: '', name: name, email: email),
+      );
+    }
+
+    _handleError(response);
+  }
+
+  @override
+  Future<void> resendVerification({required String email}) async {
+    final response = await _post('/auth/resend-verification', {'email': email});
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
     }
 
     _handleError(response);
@@ -85,10 +128,7 @@ class RemoteAuthRepository implements AuthRepository {
 
   @override
   Future<void> forgotPassword({required String email}) async {
-    final response = await _post(
-      '/auth/forgot-password',
-      {'email': email},
-    );
+    final response = await _post('/auth/forgot-password', {'email': email});
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
@@ -102,10 +142,10 @@ class RemoteAuthRepository implements AuthRepository {
     required String email,
     required String code,
   }) async {
-    final response = await _post(
-      '/auth/verify-reset-code',
-      {'email': email, 'code': code},
-    );
+    final response = await _post('/auth/verify-reset-code', {
+      'email': email,
+      'code': code,
+    });
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       try {
@@ -125,13 +165,10 @@ class RemoteAuthRepository implements AuthRepository {
     required String resetToken,
     required String newPassword,
   }) async {
-    final response = await _post(
-      '/auth/reset-password',
-      {
-        'reset_token': resetToken,
-        'new_password': newPassword,
-      },
-    );
+    final response = await _post('/auth/reset-password', {
+      'reset_token': resetToken,
+      'new_password': newPassword,
+    });
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
@@ -141,11 +178,24 @@ class RemoteAuthRepository implements AuthRepository {
   }
 
   Future<http.Response> _post(String path, Map<String, dynamic> body) async {
+    final uri = _uri(path);
+    final startedAt = DateTime.now();
+    // Log URL/path saja; body berisi password, jadi jangan log.
+    debugPrint('[AUTH HTTP] POST $uri start');
     try {
-      return await _client.post(
-        _uri(path),
-        headers: _headers,
-        body: jsonEncode(body),
+      final response = await _client
+          .post(uri, headers: _headers, body: jsonEncode(body))
+          .timeout(const Duration(seconds: 15));
+      debugPrint(
+        '[AUTH HTTP] POST $uri status=${response.statusCode} '
+        'duration=${DateTime.now().difference(startedAt).inMilliseconds}ms',
+      );
+      return response;
+    } on TimeoutException {
+      debugPrint('[AUTH HTTP] POST $uri timeout=15s');
+      throw const AppFailure(
+        message: 'Server terlalu lama merespons. Coba lagi.',
+        isRetryable: true,
       );
     } on SocketException {
       throw const AppFailure(
@@ -166,31 +216,6 @@ class RemoteAuthRepository implements AuthRepository {
   }
 
   Never _handleError(http.Response response) {
-    String message = 'Terjadi kesalahan. Coba lagi.';
-    try {
-      final decoded = jsonDecode(response.body);
-      if (decoded is Map<String, dynamic>) {
-        if (decoded['error'] is Map<String, dynamic>) {
-          final errMap = decoded['error'] as Map<String, dynamic>;
-          if (errMap['message'] is String && (errMap['message'] as String).isNotEmpty) {
-            message = errMap['message'] as String;
-          }
-        } else {
-          final rawMessage = decoded['message'];
-          if (rawMessage is String && rawMessage.isNotEmpty) {
-            message = rawMessage;
-          } else if (rawMessage is List && rawMessage.isNotEmpty) {
-            message = rawMessage.first.toString();
-          }
-        }
-      }
-    } catch (_) {
-      // Body bukan JSON valid, gunakan fallback message
-    }
-
-    throw AppFailure(
-      message: message,
-      isRetryable: response.statusCode >= 500,
-    );
+    throw appFailureFromResponse(response);
   }
 }

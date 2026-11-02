@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/sketch_challenge_models.dart';
 
 class SketchCanvasPainter extends CustomPainter {
-  const SketchCanvasPainter({
-    required this.lines,
-  });
+  const SketchCanvasPainter({required this.lines});
 
   final List<DrawnLine> lines;
 
@@ -22,7 +20,11 @@ class SketchCanvasPainter extends CustomPainter {
         ..style = PaintingStyle.stroke;
 
       if (line.points.length == 1) {
-        canvas.drawCircle(line.points.first, line.strokeWidth / 2, paint..style = PaintingStyle.fill);
+        canvas.drawCircle(
+          line.points.first,
+          line.strokeWidth / 2,
+          paint..style = PaintingStyle.fill,
+        );
         continue;
       }
 

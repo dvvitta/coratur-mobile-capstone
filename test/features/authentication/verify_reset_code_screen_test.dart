@@ -11,9 +11,9 @@ void main() {
       home: VerifyResetCodeScreen(email: email),
       routes: {
         AppRoutes.home: (_) => const StructurePlaceholderPage(
-              title: 'Beranda',
-              routeName: AppRoutes.home,
-            ),
+          title: 'Beranda',
+          routeName: AppRoutes.home,
+        ),
       },
     );
   }
@@ -39,8 +39,9 @@ void main() {
     }
   });
 
-  testWidgets('tombol submit aktif setelah 4 digit terisi dan pindah rute',
-      (tester) async {
+  testWidgets('tombol submit aktif setelah 4 digit terisi dan pindah rute', (
+    tester,
+  ) async {
     await tester.pumpWidget(harness());
 
     // Awalnya tombol disabled karena belum 4 digit

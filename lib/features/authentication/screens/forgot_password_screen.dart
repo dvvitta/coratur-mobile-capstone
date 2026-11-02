@@ -1,19 +1,27 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constants/app_routes.dart';
+import '../../../core/constants/asset_paths.dart';
 import '../../../core/constants/breakpoints.dart';
 import '../../../core/errors/app_failure.dart';
 import '../repositories/auth_repository.dart';
-import '../widgets/auth_colors.dart';
-import '../widgets/auth_text_field.dart';
-import '../widgets/forgot_password_elephant.dart';
+import '../widgets/auth_primary_button.dart';
+import '../widgets/auth_scroll_view.dart';
+
+abstract final class _Palette {
+  static const title = Color(0xFF1C1C1E);
+  static const subtitle = Color(0xFFA3A0B2);
+  static const hint = Color(0xFFC8C4D6);
+  static const fieldBorder = Color(0xFFE6E2F2);
+  static const fieldFill = Color(0xFFFCFBFF);
+  static const backButton = Color(0xFFF3F1F8);
+}
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({
-    super.key,
-    this.authRepository,
-  });
+  const ForgotPasswordScreen({super.key, this.authRepository});
 
   final AuthRepository? authRepository;
 
@@ -25,24 +33,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   var _submitting = false;
-  var _hasInput = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController.addListener(_onTextChanged);
-  }
-
-  void _onTextChanged() {
-    final hasText = _emailController.text.trim().isNotEmpty;
-    if (hasText != _hasInput) {
-      setState(() => _hasInput = hasText);
-    }
-  }
 
   @override
   void dispose() {
-    _emailController.removeListener(_onTextChanged);
     _emailController.dispose();
     super.dispose();
   }
@@ -68,10 +61,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
       if (!mounted) return;
 
-      Navigator.of(context).pushNamed(
-        AppRoutes.verifyResetCode,
-        arguments: email,
-      );
+      Navigator.of(context)
+          .pushNamed(AppRoutes.verifyResetCode, arguments: email);
     } on AppFailure catch (failure) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -95,6 +86,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const radius = 28.0;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -110,40 +103,41 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: Breakpoints.compact),
-              child: ListView(
-                physics: const ClampingScrollPhysics(),
+              child: AuthScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 children: [
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Material(
-                      color: const Color(0xFFF3F3F5),
+                      color: _Palette.backButton,
                       shape: const CircleBorder(),
                       child: InkWell(
                         key: const Key('forgot_password_back'),
                         customBorder: const CircleBorder(),
                         onTap: _onBack,
                         child: const SizedBox(
-                          width: 42,
-                          height: 42,
+                          width: 44,
+                          height: 44,
                           child: Icon(
-                            Icons.chevron_left,
-                            size: 26,
-                            color: AuthColors.title,
+                            CupertinoIcons.chevron_back,
+                            size: 28,
+                            color: _Palette.title,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
                   const Text(
                     'Lupa Sandi',
                     key: Key('forgot_password_title'),
                     style: TextStyle(
-                      color: AuthColors.title,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                      color: _Palette.title,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.4,
+                      height: 1.15,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -151,65 +145,110 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     'Masukkin email kamu dulu yuk buat reset sandinya!',
                     key: Key('forgot_password_subtitle'),
                     style: TextStyle(
-                      color: AuthColors.muted,
-                      fontSize: 14,
+                      color: _Palette.subtitle,
+                      fontSize: 20,
                       fontWeight: FontWeight.w400,
-                      height: 1.35,
+                      height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Center(
-                    child: ForgotPasswordElephant(width: 268),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    height: 268,
+                    child: SvgPicture.asset(
+                      AssetPaths.forgotPasswordElephant,
+                      key: const Key('forgot_password_elephant'),
+                      fit: BoxFit.contain,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Form(
                     key: _formKey,
-                    child: AuthTextField(
-                      key: const Key('forgot_password_email'),
-                      label: 'Your Email',
-                      hintText: 'Enteryouremail',
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: _validateEmail,
-                      prefix: const Icon(
-                        Icons.mail_outline_rounded,
-                        color: AuthColors.muted,
-                        size: 20,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Your Email',
+                          style: TextStyle(
+                            color: _Palette.title,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          key: const Key('forgot_password_email'),
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _validateEmail,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          style: const TextStyle(
+                            color: _Palette.title,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Masukkan email kamu',
+                            hintStyle: const TextStyle(
+                              color: _Palette.hint,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.only(left: 18, right: 6),
+                              child: Icon(
+                                CupertinoIcons.envelope,
+                                size: 18,
+                                color: _Palette.hint,
+                              ),
+                            ),
+                            prefixIconConstraints: const BoxConstraints(
+                              minWidth: 46,
+                              minHeight: 20,
+                            ),
+                            filled: true,
+                            fillColor: _Palette.fieldFill,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 20,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(radius),
+                              borderSide: const BorderSide(
+                                color: _Palette.fieldBorder,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(radius),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF7356F0),
+                                width: 1.2,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(radius),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE57373),
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(radius),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE57373),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 54,
-                    child: FilledButton(
-                      key: const Key('forgot_password_submit'),
-                      onPressed: _submitting ? null : _submit,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _hasInput
-                            ? AuthColors.accent
-                            : const Color(0xFF8A76B9),
-                        disabledBackgroundColor: const Color(0xFF8A76B9)
-                            .withValues(alpha: 0.6),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      child: _submitting
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.4,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Reset Password'),
-                    ),
+                  const SizedBox(height: 22),
+                  AuthPrimaryButton(
+                    key: const Key('forgot_password_submit'),
+                    label: 'Reset Sandi',
+                    submitting: _submitting,
+                    onPressed: _submit,
+                    height: 58,
+                    fontSize: 18,
                   ),
                   const SizedBox(height: 24),
                 ],

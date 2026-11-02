@@ -3,10 +3,14 @@ import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/errors/app_failure.dart';
 import '../models/level_item_model.dart';
+import '../repositories/sketch_challenge_repository.dart';
 
 class SketchChallengeLevelScreen extends StatefulWidget {
-  const SketchChallengeLevelScreen({super.key});
+  const SketchChallengeLevelScreen({super.key, this.repository});
+
+  final SketchChallengeLevelRepository? repository;
 
   @override
   State<SketchChallengeLevelScreen> createState() =>
@@ -15,53 +19,10 @@ class SketchChallengeLevelScreen extends StatefulWidget {
 
 class _SketchChallengeLevelScreenState
     extends State<SketchChallengeLevelScreen> {
-  final List<LevelItem> _levels = const [
-    LevelItem(
-      levelNumber: 1,
-      title: 'Apel',
-      subtitle: '5 Gambar | +20 Bintang',
-      status: LevelStatus.completed,
-      promptId: 'apple',
-      xRatio: 0.58,
-      yRatio: 0.84,
-    ),
-    LevelItem(
-      levelNumber: 2,
-      title: 'Kucing',
-      subtitle: '5 Gambar | +20 Bintang',
-      status: LevelStatus.completed,
-      promptId: 'cat',
-      xRatio: 0.30,
-      yRatio: 0.70,
-    ),
-    LevelItem(
-      levelNumber: 3,
-      title: 'Kupu- Kupu',
-      subtitle: '5 Gambar | +20 Bintang',
-      status: LevelStatus.active,
-      promptId: 'butterfly',
-      xRatio: 0.56,
-      yRatio: 0.58,
-    ),
-    LevelItem(
-      levelNumber: 4,
-      title: 'Level 4',
-      subtitle: 'Terkunci',
-      status: LevelStatus.locked,
-      promptId: 'flower',
-      xRatio: 0.28,
-      yRatio: 0.45,
-    ),
-    LevelItem(
-      levelNumber: 5,
-      title: 'Level 5',
-      subtitle: 'Terkunci',
-      status: LevelStatus.locked,
-      promptId: 'star',
-      xRatio: 0.58,
-      yRatio: 0.32,
-    ),
-  ];
+  // --- state ---
+  List<LevelItem>? _levels;
+  bool _loading = true;
+  String? _error;
 
   // Titik hadiah kuning di paling atas (Node 6)
   static const _giftXRatio = 0.32;
@@ -73,22 +34,8 @@ class _SketchChallengeLevelScreenState
   @override
   void initState() {
     super.initState();
-    _selectedLevel = _levels.firstWhere(
-      (l) => l.status == LevelStatus.active,
-      orElse: () => _levels.first,
-    );
-    // ScrollController default
     _scrollController = ScrollController();
-    // Scroll sedikit ke level aktif saat pertama dibuka agar level 3 fokus di tengah
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent * 0.4,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    _fetchLevels();
   }
 
   @override
@@ -96,6 +43,100 @@ class _SketchChallengeLevelScreenState
     _scrollController.dispose();
     super.dispose();
   }
+
+  Future<void> _fetchLevels() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final repo = widget.repository;
+      List<LevelItem> levels;
+      if (repo == null) {
+        // tanpa repository → fallback statis (user baru = level 1 active)
+        levels = _defaultLevels();
+      } else {
+        levels = await repo.fetchLevels();
+        // Jika BE kembalikan list kosong, pakai fallback
+        if (levels.isEmpty) levels = _defaultLevels();
+      }
+      setState(() {
+        _levels = levels;
+        _loading = false;
+        _selectedLevel = levels.firstWhere(
+          (l) => l.status == LevelStatus.active,
+          orElse: () => levels.first,
+        );
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent * 0.4,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } on AppFailure catch (e) {
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _error = 'Tidak bisa memuat level. Periksa jaringan kamu.';
+        _loading = false;
+      });
+    }
+  }
+
+  List<LevelItem> _defaultLevels() => const [
+    LevelItem(
+      levelNumber: 1,
+      title: 'Bebek',
+      subtitle: '+20 Bintang',
+      status: LevelStatus.active,
+      promptId: 'bebek',
+      xRatio: 0.58,
+      yRatio: 0.84,
+    ),
+    LevelItem(
+      levelNumber: 2,
+      title: 'Kucing',
+      subtitle: '+20 Bintang',
+      status: LevelStatus.locked,
+      promptId: 'kucing',
+      xRatio: 0.30,
+      yRatio: 0.70,
+    ),
+    LevelItem(
+      levelNumber: 3,
+      title: 'Ikan',
+      subtitle: '+20 Bintang',
+      status: LevelStatus.locked,
+      promptId: 'ikan',
+      xRatio: 0.56,
+      yRatio: 0.58,
+    ),
+    LevelItem(
+      levelNumber: 4,
+      title: 'Kupu-Kupu',
+      subtitle: '+20 Bintang',
+      status: LevelStatus.locked,
+      promptId: 'kupu_kupu',
+      xRatio: 0.28,
+      yRatio: 0.45,
+    ),
+    LevelItem(
+      levelNumber: 5,
+      title: 'Kura-Kura',
+      subtitle: '+20 Bintang',
+      status: LevelStatus.locked,
+      promptId: 'kura_kura',
+      xRatio: 0.58,
+      yRatio: 0.32,
+    ),
+  ];
 
   void _onLevelTap(LevelItem level) {
     if (level.status == LevelStatus.locked) {
@@ -113,7 +154,8 @@ class _SketchChallengeLevelScreenState
     setState(() {
       _selectedLevel = level;
     });
-    if (level.status == LevelStatus.active) {
+    if (level.status == LevelStatus.active ||
+        level.status == LevelStatus.completed) {
       _openCanvas();
     }
   }
@@ -130,8 +172,13 @@ class _SketchChallengeLevelScreenState
     );
   }
 
-  void _openCanvas() {
-    Navigator.of(context).pushNamed(AppRoutes.sketchChallenge);
+  Future<void> _openCanvas() async {
+    await Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.sketchChallenge, arguments: _selectedLevel.promptId);
+    if (mounted && widget.repository != null) {
+      await _fetchLevels();
+    }
   }
 
   @override
@@ -145,111 +192,144 @@ class _SketchChallengeLevelScreenState
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            // Tinggi konten scrollable: 1100px agar leluasa di-scroll
-            final contentH = (constraints.maxHeight * 1.35).clamp(
-              1000.0,
-              1400.0,
-            );
+        body: _loading
+            ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFF7546F8)),
+              )
+            : _error != null
+            ? _buildError()
+            : _buildMap(),
+      ),
+    );
+  }
 
-            // Daftar koordinat semua node untuk garis titik-titik (termasuk Gift)
-            final allNodeCenters = [
-              ..._levels.map((l) => Offset(l.xRatio * w, l.yRatio * contentH)),
-              Offset(_giftXRatio * w, _giftYRatio * contentH),
-            ];
-
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                // 1. Scrollable Map & Background (tanpa rubber-band / stretch overscroll)
-                ScrollConfiguration(
-                  behavior: const _NoStretchScrollBehavior(),
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const ClampingScrollPhysics(),
-                    child: SizedBox(
-                      width: w,
-                      height: contentH,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // Background image
-                          Image.asset(
-                            AssetPaths.levelBackground,
-                            width: w,
-                            height: contentH,
-                            fit: BoxFit.cover,
-                          ),
-
-                          // Dotted Connection Paths (Level 1..5 + Gift)
-                          CustomPaint(
-                            size: Size(w, contentH),
-                            painter: _LevelPathDotsPainter(
-                              nodeCenters: allNodeCenters,
-                            ),
-                          ),
-
-                          // Level Nodes (1..5)
-                          ..._levels.map(
-                            (level) => _buildNodeWidget(level, w, contentH),
-                          ),
-
-                          // Top Gift Box Node (Node Hadiah Kuning)
-                          _buildGiftNodeWidget(w, contentH),
-
-                          // Spacer bawah agar node 1 tidak tertutup action card saat scroll paling bawah
-                          const Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: SizedBox(height: 120),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 2. Fixed Top Header Bar & World Banner
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 8),
-                        _buildHeader(context),
-                        const SizedBox(height: 14),
-                        _buildWorldBanner(),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // 3. Fixed Floating Action Card (Active / Selected Level)
-                Positioned(
-                  left: 20,
-                  right: 20,
-                  bottom: 24,
-                  child: SafeArea(
-                    top: false,
-                    child: _buildActionCard(_selectedLevel),
-                  ),
-                ),
-              ],
-            );
-          },
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.wifi_off_rounded,
+              size: 56,
+              color: Color(0xFF7546F8),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Color(0xFF3730A3),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: _fetchLevels,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF6B4DFF),
+              ),
+              child: const Text('Coba Lagi'),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMap() {
+    final levels = _levels!;
+    final completedCount = levels
+        .where((l) => l.status == LevelStatus.completed)
+        .length;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final contentH = (constraints.maxHeight * 1.35).clamp(1000.0, 1400.0);
+
+        final allNodeCenters = [
+          ...levels.map((l) => Offset(l.xRatio * w, l.yRatio * contentH)),
+          Offset(_giftXRatio * w, _giftYRatio * contentH),
+        ];
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            ScrollConfiguration(
+              behavior: const _NoStretchScrollBehavior(),
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const ClampingScrollPhysics(),
+                child: SizedBox(
+                  width: w,
+                  height: contentH,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        AssetPaths.levelBackground,
+                        width: w,
+                        height: contentH,
+                        fit: BoxFit.cover,
+                      ),
+                      CustomPaint(
+                        size: Size(w, contentH),
+                        painter: _LevelPathDotsPainter(
+                          nodeCenters: allNodeCenters,
+                        ),
+                      ),
+                      ...levels.map(
+                        (level) => _buildNodeWidget(level, w, contentH),
+                      ),
+                      _buildGiftNodeWidget(w, contentH),
+                      const Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: SizedBox(height: 120),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
+                    _buildHeader(context),
+                    const SizedBox(height: 14),
+                    _buildWorldBanner(completedCount, levels.length),
+                  ],
+                ),
+              ),
+            ),
+
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 24,
+              child: SafeArea(
+                top: false,
+                child: _buildActionCard(_selectedLevel),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildGiftNodeWidget(double screenW, double contentH) {
     final cx = _giftXRatio * screenW;
     final cy = _giftYRatio * contentH;
-
     return Positioned(
       left: cx - 40,
       top: cy - 40,
@@ -314,7 +394,8 @@ class _SketchChallengeLevelScreenState
           ),
           child: const Icon(Icons.check_rounded, color: Colors.white, size: 38),
         );
-        final starCount = level.levelNumber == 1 ? 3 : 2;
+        // Gunakan high_stars dari BE; fallback 1 kalau 0 (setidaknya 1 bintang untuk selesai)
+        final starCount = level.highStars.clamp(1, 3);
         starsUnderneath = List.generate(
           starCount,
           (_) => Padding(
@@ -454,10 +535,12 @@ class _SketchChallengeLevelScreenState
   }
 
   Widget _buildHeader(BuildContext context) {
+    final levels = _levels ?? [];
+    final totalStars = levels.fold(0, (sum, l) => sum + l.highStars);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Back Button
         Material(
           color: Colors.transparent,
           shape: const CircleBorder(),
@@ -488,8 +571,6 @@ class _SketchChallengeLevelScreenState
           ),
         ),
         const SizedBox(width: 14),
-
-        // Title
         const Expanded(
           child: Text(
             'Sketch Challenge',
@@ -501,8 +582,6 @@ class _SketchChallengeLevelScreenState
             ),
           ),
         ),
-
-        // Score Badge
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
@@ -531,8 +610,8 @@ class _SketchChallengeLevelScreenState
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     'Skor',
                     style: TextStyle(
                       fontSize: 14,
@@ -541,10 +620,10 @@ class _SketchChallengeLevelScreenState
                       height: 1.0,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    '20',
-                    style: TextStyle(
+                    '$totalStars',
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF3730A3),
@@ -560,7 +639,7 @@ class _SketchChallengeLevelScreenState
     );
   }
 
-  Widget _buildWorldBanner() {
+  Widget _buildWorldBanner(int completedCount, int total) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
@@ -609,9 +688,9 @@ class _SketchChallengeLevelScreenState
               color: const Color(0xFF7546F8),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text(
-              '2/5 Selesai',
-              style: TextStyle(
+            child: Text(
+              '$completedCount/$total Selesai',
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -668,15 +747,16 @@ class _SketchChallengeLevelScreenState
             ),
           ),
           const SizedBox(width: 10),
-
-          // Mulai Button
           SizedBox(
             height: 42,
             child: FilledButton(
               key: const Key('level_start_button'),
-              onPressed: _openCanvas,
+              onPressed: level.status == LevelStatus.locked
+                  ? null
+                  : _openCanvas,
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF6B4DFF),
+                disabledBackgroundColor: const Color(0xFFDDD2FB),
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -707,9 +787,7 @@ class _NoStretchScrollBehavior extends ScrollBehavior {
     BuildContext context,
     Widget child,
     ScrollableDetails details,
-  ) {
-    return child;
-  }
+  ) => child;
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) =>
@@ -724,7 +802,6 @@ class _LevelPathDotsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (nodeCenters.length < 2) return;
-
     final dotPaint = Paint()
       ..color = const Color(0xFFBCA7FB)
       ..style = PaintingStyle.fill;
@@ -732,11 +809,8 @@ class _LevelPathDotsPainter extends CustomPainter {
     for (int i = 0; i < nodeCenters.length - 1; i++) {
       final p1 = nodeCenters[i];
       final p2 = nodeCenters[i + 1];
-
-      // Smooth Bezier curve between nodes
       final path = Path();
       path.moveTo(p1.dx, p1.dy);
-
       final midY = (p1.dy + p2.dy) / 2;
       final controlPoint = Offset(
         (p1.dx + p2.dx) / 2 + ((i.isEven ? 1 : -1) * 20),
@@ -748,7 +822,6 @@ class _LevelPathDotsPainter extends CustomPainter {
         final totalLength = metric.length;
         const step = 18.0;
         const dotRadius = 4.5;
-
         for (double d = 44; d < totalLength - 44; d += step) {
           final tangent = metric.getTangentForOffset(d);
           if (tangent != null) {
@@ -760,7 +833,6 @@ class _LevelPathDotsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _LevelPathDotsPainter oldDelegate) {
-    return oldDelegate.nodeCenters != nodeCenters;
-  }
+  bool shouldRepaint(covariant _LevelPathDotsPainter oldDelegate) =>
+      oldDelegate.nodeCenters != nodeCenters;
 }

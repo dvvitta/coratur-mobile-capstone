@@ -1,7 +1,4 @@
-enum ArtworkStatus {
-  completed,
-  inProgress,
-}
+enum ArtworkStatus { completed, inProgress }
 
 class HistoryArtwork {
   const HistoryArtwork({

@@ -1,9 +1,5 @@
 class AuthUser {
-  const AuthUser({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
+  const AuthUser({required this.id, required this.name, required this.email});
 
   final String id;
   final String name;
@@ -17,9 +13,5 @@ class AuthUser {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'email': email,
-      };
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'email': email};
 }

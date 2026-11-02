@@ -6,11 +6,15 @@ abstract final class AppRoutes {
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
   static const verifyResetCode = '/verify-reset-code';
+  static const verifyEmail = '/verify-email';
   static const home = '/home';
   static const missions = '/missions';
   static const sketchChallenge = '/sketch-challenge';
   static const sketchChallengeLevels = '/sketch-challenge-levels';
   static const jelajahCilik = '/jelajah-cilik';
+  static const hitungHewan = '/jelajah-cilik/hitung-hewan';
+  static const kenaliHuruf = '/jelajah-cilik/kenali-huruf';
+  static const ttsVoiceDebug = '/debug/tts-voice';
   static const sketchToStory = '/sketch-to-story';
   static const history = '/history';
   static const profile = '/profile';

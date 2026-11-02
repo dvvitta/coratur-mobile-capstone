@@ -19,7 +19,8 @@ class MissionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ??
+    final bg =
+        backgroundColor ??
         (mission.isCompleted
             ? const Color(0xFFEDFBF1)
             : const Color(0xFFFEF8E3));
@@ -132,11 +133,7 @@ class MissionCard extends StatelessWidget {
           color: Color(0xFF22C55E),
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.check_rounded,
-          color: Colors.white,
-          size: 22,
-        ),
+        child: const Icon(Icons.check_rounded, color: Colors.white, size: 22),
       );
     }
 
@@ -173,7 +170,10 @@ class MissionCard extends StatelessWidget {
               ? OutlinedButton(
                   onPressed: onAction,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF6342E8), width: 1.5),
+                    side: const BorderSide(
+                      color: Color(0xFF6342E8),
+                      width: 1.5,
+                    ),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),

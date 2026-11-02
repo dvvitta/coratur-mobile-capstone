@@ -15,6 +15,7 @@ class ProfileScreen extends StatefulWidget {
     this.totalStars,
     this.streakDays,
     this.isEmbedded = false,
+    this.onLogout,
   });
 
   final String userName;
@@ -25,6 +26,9 @@ class ProfileScreen extends StatefulWidget {
   final int? totalStars;
   final int? streakDays;
   final bool isEmbedded;
+
+  /// Dipanggil saat pengguna keluar, untuk membersihkan sesi (token) di memori.
+  final VoidCallback? onLogout;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -91,9 +95,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _onOpenHelp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pusat Bantuan Curator')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Pusat Bantuan Curator')));
   }
 
   void _onLogout() {
@@ -113,10 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           content: const Text(
             'Apakah kamu yakin ingin keluar dari akun ini?',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B558B),
-            ),
+            style: TextStyle(fontSize: 14, color: Color(0xFF6B558B)),
           ),
           actions: [
             TextButton(
@@ -126,10 +126,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             FilledButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.login,
-                  (route) => false,
-                );
+                widget.onLogout?.call();
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
               },
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFFF5E5E),
@@ -157,7 +156,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F6FF),
-        bottomNavigationBar: widget.isEmbedded ? null : _buildStandaloneBottomNav(context),
+        bottomNavigationBar: widget.isEmbedded
+            ? null
+            : _buildStandaloneBottomNav(context),
         body: ScrollConfiguration(
           behavior: const ScrollBehavior().copyWith(overscroll: false),
           child: SingleChildScrollView(
@@ -216,9 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFFE7E4FB),
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(32),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
       child: SafeArea(
         bottom: false,
@@ -254,7 +253,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3.5),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 3.5,
+                              ),
                               boxShadow: const [
                                 BoxShadow(
                                   color: Color(0x1A43309A),
@@ -281,7 +283,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Fitur ubah foto profil segera hadir!'),
+                                  content: Text(
+                                    'Fitur ubah foto profil segera hadir!',
+                                  ),
                                 ),
                               );
                             },
@@ -473,11 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: iconBgColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: iconColor,
-            ),
+            child: Icon(icon, size: 20, color: iconColor),
           ),
           const SizedBox(height: 8),
 
@@ -642,7 +642,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // Green pill badge 'Terhubung'
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(20),
@@ -719,11 +722,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: iconBgColor,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: iconColor,
-                ),
+                child: Icon(icon, size: 22, color: iconColor),
               ),
               const SizedBox(width: 14),
 
@@ -818,11 +817,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(
-              Icons.logout_rounded,
-              size: 20,
-              color: Colors.white,
-            ),
+            Icon(Icons.logout_rounded, size: 20, color: Colors.white),
             SizedBox(width: 8),
             Text(
               'Keluar Akun',
@@ -862,13 +857,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               IconButton(
                 onPressed: () =>
                     Navigator.of(context).pushReplacementNamed(AppRoutes.home),
-                icon: const Icon(Icons.home_rounded, color: Color(0xFF6D3FE0), size: 28),
+                icon: const Icon(
+                  Icons.home_rounded,
+                  color: Color(0xFF6D3FE0),
+                  size: 28,
+                ),
               ),
               // 2. History
               IconButton(
                 onPressed: () =>
-                    Navigator.of(context).pushReplacementNamed(AppRoutes.history),
-                icon: const Icon(Icons.history_rounded, color: Color(0xFF6D3FE0), size: 28),
+                    Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.history),
+                icon: const Icon(
+                  Icons.history_rounded,
+                  color: Color(0xFF6D3FE0),
+                  size: 28,
+                ),
               ),
               // 3. Profile Pill
               Container(
@@ -1067,7 +1071,8 @@ class _ClassroomCodeSheetState extends State<_ClassroomCodeSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(_codeLength, (index) {
                     final isFilled = index < text.length;
-                    final isCurrent = index == text.length && _focusNode.hasFocus;
+                    final isCurrent =
+                        index == text.length && _focusNode.hasFocus;
                     final char = isFilled ? text[index] : '';
 
                     return _buildPinBox(
@@ -1135,9 +1140,7 @@ class _ClassroomCodeSheetState extends State<_ClassroomCodeSheet> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: _isComplete
-                      ? Colors.white
-                      : const Color(0xFF7C3AED),
+                  color: _isComplete ? Colors.white : const Color(0xFF7C3AED),
                 ),
               ),
             ),
@@ -1173,8 +1176,8 @@ class _ClassroomCodeSheetState extends State<_ClassroomCodeSheet> {
             border: isCurrent
                 ? Border.all(color: const Color(0xFF6C42F5), width: 2)
                 : isFilled
-                    ? Border.all(color: const Color(0xFFD4CCE8), width: 1.2)
-                    : null,
+                ? Border.all(color: const Color(0xFFD4CCE8), width: 1.2)
+                : null,
           ),
           alignment: Alignment.center,
           child: isFilled
@@ -1187,12 +1190,8 @@ class _ClassroomCodeSheetState extends State<_ClassroomCodeSheet> {
                   ),
                 )
               : isCurrent
-                  ? Container(
-                      width: 2,
-                      height: 24,
-                      color: const Color(0xFF6C42F5),
-                    )
-                  : null,
+              ? Container(width: 2, height: 24, color: const Color(0xFF6C42F5))
+              : null,
         ),
       ),
     );
