@@ -2,14 +2,14 @@ import '../../../core/constants/asset_paths.dart';
 import '../models/mission_item.dart';
 
 abstract interface class MissionRepository {
-  List<MissionItem> getMissions();
+  Future<List<MissionItem>> fetchMissions();
 }
 
 class MockMissionRepository implements MissionRepository {
   const MockMissionRepository();
 
   @override
-  List<MissionItem> getMissions() {
+  Future<List<MissionItem>> fetchMissions() async {
     return const [
       MissionItem(
         id: 'mission_1',

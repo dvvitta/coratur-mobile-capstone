@@ -6,6 +6,7 @@ import '../../../core/constants/breakpoints.dart';
 import '../../../core/errors/app_failure.dart';
 import '../repositories/auth_repository.dart';
 import '../widgets/auth_colors.dart';
+import '../widgets/auth_scroll_view.dart';
 
 class VerifyResetCodeScreen extends StatefulWidget {
   const VerifyResetCodeScreen({
@@ -22,8 +23,10 @@ class VerifyResetCodeScreen extends StatefulWidget {
 }
 
 class _VerifyResetCodeScreenState extends State<VerifyResetCodeScreen> {
-  final List<TextEditingController> _controllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   var _submitting = false;
 
@@ -90,9 +93,8 @@ class _VerifyResetCodeScreenState extends State<VerifyResetCodeScreen> {
       }
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kode terverifikasi!')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Kode terverifikasi!')));
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } on AppFailure catch (failure) {
       if (!mounted) return;
@@ -120,8 +122,7 @@ class _VerifyResetCodeScreenState extends State<VerifyResetCodeScreen> {
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: Breakpoints.compact),
-              child: ListView(
-                physics: const ClampingScrollPhysics(),
+              child: AuthScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 children: [
                   const SizedBox(height: 12),
@@ -277,10 +278,7 @@ class _VerifyResetCodeScreenState extends State<VerifyResetCodeScreen> {
                     children: [
                       const Text(
                         "Haven't got the email yet? ",
-                        style: TextStyle(
-                          color: AuthColors.muted,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: AuthColors.muted, fontSize: 13),
                       ),
                       GestureDetector(
                         key: const Key('verify_code_resend'),

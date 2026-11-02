@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:curator/core/constants/app_routes.dart';
@@ -22,8 +23,16 @@ void main() {
     );
   }
 
-  testWidgets('menampilkan header, gajah lupa sandi, input, dan tombol',
-      (tester) async {
+  testWidgets('menampilkan header, gajah lupa sandi, input, dan tombol', (
+    tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    tester.view.physicalSize = const Size(412, 917);
+    tester.view.devicePixelRatio = 1;
+
     await tester.pumpWidget(harness());
 
     expect(find.text('Lupa Sandi'), findsOneWidget);
@@ -32,16 +41,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Your Email'), findsOneWidget);
-    expect(find.text('Reset Password'), findsOneWidget);
+    expect(find.text('Masukkan email kamu'), findsOneWidget);
+    expect(find.text('Reset Sandi'), findsOneWidget);
 
     final elephantFinder = find.byKey(const Key('forgot_password_elephant'));
     expect(elephantFinder, findsOneWidget);
 
-    final elephant = tester.widget<Image>(elephantFinder);
-    expect(
-      elephant.image,
-      const AssetImage(AssetPaths.forgotPasswordElephant),
-    );
+    final elephant = tester.widget<SvgPicture>(elephantFinder);
+    final loader = elephant.bytesLoader as SvgAssetLoader;
+    expect(loader.assetName, AssetPaths.forgotPasswordElephant);
   });
 
   testWidgets('validasi format email wajib diisi dan valid', (tester) async {

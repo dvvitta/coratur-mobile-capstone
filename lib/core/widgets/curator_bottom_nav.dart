@@ -37,8 +37,8 @@ class CuratorBottomNav extends StatelessWidget {
               const pillHeight = 44.0;
 
               // Hitung posisi horizontal pill animasi
-              final targetLeft = (slotWidth * selectedIndex) +
-                  ((slotWidth - pillWidth) / 2);
+              final targetLeft =
+                  (slotWidth * selectedIndex) + ((slotWidth - pillWidth) / 2);
 
               return SizedBox(
                 height: pillHeight,
@@ -127,11 +127,7 @@ class CuratorBottomNav extends StatelessWidget {
                 end: isSelected ? Colors.white : const Color(0xFF6D3FE0),
               ),
               builder: (context, color, child) {
-                return Icon(
-                  icon,
-                  size: 27,
-                  color: color,
-                );
+                return Icon(icon, size: 27, color: color);
               },
             ),
           ),

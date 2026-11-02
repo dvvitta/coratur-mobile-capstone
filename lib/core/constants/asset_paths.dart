@@ -3,14 +3,17 @@
 /// bukan layer runtime.
 abstract final class AssetPaths {
   static const logo = 'assets/images/logo.png';
-  static const splashFullscreen3 = 'assets/images/full screen splash 3.png';
-  static const onboardIllustration1 = 'assets/images/onboardd 1.png';
-  static const onboardIllustration2 = 'assets/images/onboardd 2.png';
-  static const onboardIllustration3 = 'assets/images/onboardd 3.png';
+  static const splashFullscreen3 = 'assets/background/full screen splash 3.png';
+  static const onboardIllustration1 = 'assets/background/onboardd 1.png';
+  static const onboardIllustration2 = 'assets/background/onboardd 2.png';
+  static const onboardIllustration3 = 'assets/background/onboardd 3.png';
   static const authElephant = 'assets/images/gajah login regris.png';
-  static const forgotPasswordElephant = 'assets/images/gajah lupa sandi.png';
+  static const authBackground = 'assets/background/bg login regris.png';
+  static const forgotPasswordElephant =
+      'assets/background/gajah_lupa_sandi_transparan.svg';
   static const sketchChallenge = 'assets/images/sketch challenge.png';
   static const jelajahCilik = 'assets/images/jelajah cilik.png';
+  static const jelajahPencil = 'assets/images/krayon jelajah.png';
   static const sketchToStory = 'assets/images/sketch-to-story.png';
   static const palette = 'assets/images/palette.png';
   static const missionApple = 'assets/images/apell.png';
@@ -22,8 +25,19 @@ abstract final class AssetPaths {
   static const star = 'assets/images/bintang.png';
   static const levelBackground = 'assets/images/background level.png';
   static const historyCrayon = 'assets/images/krayon history.png';
+  static const bebekBackground = 'assets/hitung_hewan/bebek.png';
+  static const hitungHewanKucing = 'assets/hitung_hewan/Kucing.png';
+  static const hitungHewanIkan = 'assets/hitung_hewan/ikan.png';
+  static const hitungHewanKelinci = 'assets/hitung_hewan/kelinci.png';
   static const historyArtMatahari = 'assets/images/MATAHARI.jpg';
   static const historyArtMobil = 'assets/images/history_art_mobil.png';
   static const historyArtKucing = 'assets/images/history_art_kucing.png';
   static const historyArtBunga = 'assets/images/history_art_bunga.png';
+  static const sketchGuideKucing = 'assets/sketch challenge/hewan/kucing.svg';
+  static const sketchGuideBebek = 'assets/sketch challenge/hewan/bebek.svg';
+  static const sketchGuideIkan = 'assets/sketch challenge/hewan/ikan.svg';
+  static const sketchGuideKupuKupu =
+      'assets/sketch challenge/hewan/kupu kupu.svg';
+  static const sketchGuideKuraKura =
+      'assets/sketch challenge/hewan/kura kura.svg';
 }

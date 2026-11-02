@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:curator/core/constants/app_routes.dart';
 import 'package:curator/features/home/screens/home_screen.dart';
+import 'package:curator/features/missions/models/mission_item.dart';
+import 'package:curator/features/missions/repositories/mission_repository.dart';
 import 'package:curator/features/missions/screens/missions_screen.dart';
 
 void main() {
@@ -18,8 +20,9 @@ void main() {
     );
   }
 
-  testWidgets('menampilkan greeting user, petualangan, belajar, dan misi',
-      (tester) async {
+  testWidgets('menampilkan greeting user, petualangan, belajar, dan misi', (
+    tester,
+  ) async {
     addTearDown(() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
@@ -65,8 +68,9 @@ void main() {
     expect(find.text('Halo, Arka!'), findsOneWidget);
   });
 
-  testWidgets('nav bar bawah membuka halaman History dan Profile',
-      (tester) async {
+  testWidgets('nav bar bawah membuka halaman History dan Profile', (
+    tester,
+  ) async {
     addTearDown(() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
@@ -91,4 +95,63 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Profile Screen'), findsOneWidget);
   });
+
+  testWidgets(
+    'kartu misi beranda memakai ikon dan kategori dari data backend',
+    (tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      tester.view.physicalSize = const Size(412, 1055);
+      tester.view.devicePixelRatio = 1;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeScreen(missionRepository: _ExploreMissionRepository()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Kenali benda di sekitarmu'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      // Misi "explore" harus tampil sebagai Jelajah Cilik, bukan Sketch
+      // Challenge, dan ikonnya mengikuti data misi (permainan).
+      expect(find.textContaining('Jelajah Cilik • '), findsOneWidget);
+      expect(find.textContaining('Sketch Challenge • '), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Image &&
+              widget.image is AssetImage &&
+              (widget.image as AssetImage).assetName ==
+                  'assets/images/permainan.png',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+}
+
+class _ExploreMissionRepository implements MissionRepository {
+  @override
+  Future<List<MissionItem>> fetchMissions() async {
+    return const [
+      MissionItem(
+        id: 'explore-1',
+        title: 'Kenali benda di sekitarmu',
+        category: 'Jelajah Cilik',
+        currentProgress: 0,
+        totalProgress: 3,
+        reward: 20,
+        status: MissionStatus.notStarted,
+        iconPath: 'assets/images/permainan.png',
+      ),
+    ];
+  }
 }

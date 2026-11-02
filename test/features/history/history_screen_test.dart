@@ -5,8 +5,9 @@ import 'package:curator/core/constants/app_routes.dart';
 import 'package:curator/features/history/screens/history_screen.dart';
 
 void main() {
-  testWidgets('menampilkan daftar karya grid ketika riwayat memiliki data',
-      (tester) async {
+  testWidgets('menampilkan daftar karya grid ketika riwayat memiliki data', (
+    tester,
+  ) async {
     addTearDown(() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
@@ -14,11 +15,7 @@ void main() {
     tester.view.physicalSize = const Size(412, 1055);
     tester.view.devicePixelRatio = 1;
 
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: HistoryScreen(),
-      ),
-    );
+    await tester.pumpWidget(const MaterialApp(home: HistoryScreen()));
     await tester.pumpAndSettle();
 
     // 1. Header
@@ -51,8 +48,7 @@ void main() {
     expect(find.text('Belum ada karya, nih!'), findsOneWidget);
   });
 
-  testWidgets('menampilkan empty state jika riwayat kosong',
-      (tester) async {
+  testWidgets('menampilkan empty state jika riwayat kosong', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         routes: {
@@ -65,7 +61,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Belum ada karya, nih!'), findsOneWidget);
-    expect(find.byKey(const Key('history_start_drawing_button')), findsOneWidget);
+    expect(
+      find.byKey(const Key('history_start_drawing_button')),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byKey(const Key('history_start_drawing_button')));
     await tester.pumpAndSettle();

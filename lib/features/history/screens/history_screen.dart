@@ -4,12 +4,9 @@ import 'package:flutter/services.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../models/history_artwork_model.dart';
+import '../repositories/history_repository.dart';
 
-enum HistoryFilter {
-  semua,
-  selesai,
-  proses,
-}
+enum HistoryFilter { semua, selesai, proses }
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({
@@ -18,12 +15,14 @@ class HistoryScreen extends StatefulWidget {
     this.userName = 'Arka',
     this.isEmbedded = false,
     this.initialArtworks,
+    this.repository,
   });
 
   final HistoryFilter initialFilter;
   final String userName;
   final bool isEmbedded;
   final List<HistoryArtwork>? initialArtworks;
+  final HistoryRepository? repository;
 
   static const List<HistoryArtwork> mockArtworks = [
     HistoryArtwork(
@@ -74,15 +73,28 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   late HistoryFilter _currentFilter;
-  late final List<HistoryArtwork> _allArtworks;
+  late List<HistoryArtwork> _allArtworks;
 
   @override
   void initState() {
     super.initState();
     _currentFilter = widget.initialFilter;
     // Jika user default mock 'Arka', gunakan data demo. Jika user login asli tapi belum beraktivitas, tampilkan list kosong.
-    _allArtworks = widget.initialArtworks ??
+    _allArtworks =
+        widget.initialArtworks ??
         (widget.userName == 'Arka' ? HistoryScreen.mockArtworks : const []);
+    if (widget.repository != null && widget.initialArtworks == null) {
+      _loadHistory();
+    }
+  }
+
+  Future<void> _loadHistory() async {
+    try {
+      final artworks = await widget.repository!.fetchHistory();
+      if (mounted) setState(() => _allArtworks = artworks);
+    } catch (_) {
+      // Keep existing local state; retry can be added from current error UI.
+    } finally {}
   }
 
   void _onFilterChanged(HistoryFilter filter) {
@@ -113,6 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final displayedArtworks = _filteredArtworks;
+    // Loading state stays inside existing layout.
     final hasArtworks = displayedArtworks.isNotEmpty;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -125,7 +138,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F6FF),
-        bottomNavigationBar: widget.isEmbedded ? null : _buildBottomNav(context),
+        bottomNavigationBar: widget.isEmbedded
+            ? null
+            : _buildBottomNav(context),
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -249,8 +264,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               children: [
                 // Badge 1: '4 selesai'
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -286,8 +303,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                 // Badge 2: '8 bintang'
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -377,10 +396,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           borderRadius: BorderRadius.circular(16),
           border: isActive
               ? null
-              : Border.all(
-                  color: const Color(0xFFE2E4F0),
-                  width: 1.2,
-                ),
+              : Border.all(color: const Color(0xFFE2E4F0), width: 1.2),
           boxShadow: isActive
               ? const [
                   BoxShadow(
@@ -467,10 +483,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    artwork.imageAssetPath,
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.asset(artwork.imageAssetPath, fit: BoxFit.cover),
                 ),
                 // Badge Selesai centang hijau di pojok kanan atas gambar
                 if (artwork.status == ArtworkStatus.completed)
@@ -674,7 +687,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     } else {
-                      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.home);
                     }
                   },
                   child: const Padding(

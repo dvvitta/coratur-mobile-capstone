@@ -6,8 +6,14 @@ import '../features/authentication/controllers/auth_controller.dart';
 import '../features/authentication/models/auth_tab.dart';
 import '../features/authentication/screens/auth_screen.dart';
 import '../features/authentication/screens/forgot_password_screen.dart';
+import '../features/authentication/screens/verify_email_screen.dart';
 import '../features/authentication/screens/verify_reset_code_screen.dart';
+import '../features/jelajah/screens/hitung_hewan_screen.dart';
+import '../features/jelajah/screens/jelajah_screen.dart';
+import '../features/jelajah/screens/kenali_huruf_screen.dart';
+import '../features/jelajah/screens/tts_voice_debug_screen.dart';
 import '../features/main/screens/main_navigation_shell.dart';
+import '../features/missions/repositories/mission_repository.dart';
 import '../features/missions/screens/missions_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/sketch_challenge/screens/sketch_challenge_level_screen.dart';
@@ -24,31 +30,50 @@ class AppRouter {
 
   String get initialRoute => AppRoutes.splash;
 
+  AuthController? _authController() {
+    final current = dependencies;
+    if (current == null) return null;
+    return AuthController(
+      repository: current.authRepository,
+      onUserAuthenticated: (user, accessToken) =>
+          current.sessionStore.setSession(user: user, accessToken: accessToken),
+    );
+  }
+
+  Widget _mainRoute(int initialIndex) {
+    final current = dependencies;
+    return AnimatedBuilder(
+      animation: current?.sessionStore ?? Listenable.merge([]),
+      builder: (context, child) => MainNavigationShell(
+        initialIndex: initialIndex,
+        userName: current?.sessionStore.displayName,
+        missionRepository:
+            current?.missionRepository ?? const MockMissionRepository(),
+        historyRepository: current?.historyRepository,
+        onLogout: () => current?.sessionStore.clear(),
+      ),
+    );
+  }
+
   Map<String, WidgetBuilder> get routes => {
     AppRoutes.splash: (_) => const SplashScreen(),
     AppRoutes.onboarding: (_) => const OnboardingScreen(),
-    AppRoutes.login: (_) => AuthScreen(
-      controller: dependencies != null
-          ? AuthController(
-              repository: dependencies!.authRepository,
-              onUserAuthenticated: (user) =>
-                  dependencies!.sessionStore.setUser(user),
-            )
-          : null,
+    AppRoutes.login: (context) => AuthScreen(
+      initialEmail: ModalRoute.of(context)?.settings.arguments as String?,
+      rememberedEmailStore: dependencies?.rememberedEmailStore,
+      controller: _authController(),
     ),
-    AppRoutes.register: (_) => AuthScreen(
-      initialTab: AuthTab.register,
-      controller: dependencies != null
-          ? AuthController(
-              repository: dependencies!.authRepository,
-              onUserAuthenticated: (user) =>
-                  dependencies!.sessionStore.setUser(user),
-            )
-          : null,
-    ),
-    AppRoutes.forgotPassword: (_) => ForgotPasswordScreen(
-      authRepository: dependencies?.authRepository,
-    ),
+    AppRoutes.register: (_) =>
+        AuthScreen(initialTab: AuthTab.register, controller: _authController()),
+    AppRoutes.verifyEmail: (context) {
+      final email = ModalRoute.of(context)?.settings.arguments as String?;
+      return VerifyEmailScreen(
+        email: email ?? '',
+        authRepository: dependencies?.authRepository,
+      );
+    },
+    AppRoutes.forgotPassword: (_) =>
+        ForgotPasswordScreen(authRepository: dependencies?.authRepository),
     AppRoutes.verifyResetCode: (context) {
       final email = ModalRoute.of(context)?.settings.arguments as String?;
       return VerifyResetCodeScreen(
@@ -56,37 +81,31 @@ class AppRouter {
         authRepository: dependencies?.authRepository,
       );
     },
-    AppRoutes.home: (_) => AnimatedBuilder(
-      animation: dependencies?.sessionStore ?? Listenable.merge([]),
-      builder: (_, __) => MainNavigationShell(
-        userName: dependencies?.sessionStore.displayName,
-      ),
+    AppRoutes.home: (_) => _mainRoute(0),
+    AppRoutes.missions: (_) => MissionsScreen(
+      repository:
+          dependencies?.missionRepository ?? const MockMissionRepository(),
     ),
-    AppRoutes.missions: (_) => const MissionsScreen(),
-    AppRoutes.sketchChallenge: (_) => const SketchChallengeScreen(),
-    AppRoutes.sketchChallengeLevels: (_) => const SketchChallengeLevelScreen(),
-    AppRoutes.jelajahCilik: (_) => const StructurePlaceholderPage(
-      title: 'Jelajah Cilik',
-      routeName: AppRoutes.jelajahCilik,
+    AppRoutes.sketchChallenge: (context) {
+      final promptId = ModalRoute.of(context)?.settings.arguments as String?;
+      return SketchChallengeScreen(
+        initialPromptId: promptId,
+        completeRepository: dependencies?.sketchChallengeCompleteRepository,
+      );
+    },
+    AppRoutes.sketchChallengeLevels: (_) => SketchChallengeLevelScreen(
+      repository: dependencies?.sketchChallengeLevelRepository,
     ),
+    AppRoutes.jelajahCilik: (_) => const JelajahScreen(),
+    AppRoutes.hitungHewan: (_) => const HitungHewanScreen(),
+    AppRoutes.kenaliHuruf: (_) => const KenaliHurufScreen(),
+    AppRoutes.ttsVoiceDebug: (_) => const TtsVoiceDebugScreen(),
     AppRoutes.sketchToStory: (_) => const StructurePlaceholderPage(
       title: 'Sketch-to-Story',
       routeName: AppRoutes.sketchToStory,
     ),
-    AppRoutes.history: (_) => AnimatedBuilder(
-      animation: dependencies?.sessionStore ?? Listenable.merge([]),
-      builder: (_, __) => MainNavigationShell(
-        initialIndex: 1,
-        userName: dependencies?.sessionStore.displayName,
-      ),
-    ),
-    AppRoutes.profile: (_) => AnimatedBuilder(
-      animation: dependencies?.sessionStore ?? Listenable.merge([]),
-      builder: (_, __) => MainNavigationShell(
-        initialIndex: 2,
-        userName: dependencies?.sessionStore.displayName,
-      ),
-    ),
+    AppRoutes.history: (_) => _mainRoute(1),
+    AppRoutes.profile: (_) => _mainRoute(2),
     AppRoutes.teacher: (_) => const StructurePlaceholderPage(
       title: 'Area Guru',
       routeName: AppRoutes.teacher,

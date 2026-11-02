@@ -1,8 +1,4 @@
-enum LevelStatus {
-  completed,
-  active,
-  locked,
-}
+enum LevelStatus { completed, active, locked }
 
 class LevelItem {
   const LevelItem({
@@ -13,6 +9,7 @@ class LevelItem {
     required this.promptId,
     required this.xRatio,
     required this.yRatio,
+    this.highStars = 0,
   });
 
   final int levelNumber;
@@ -22,4 +19,5 @@ class LevelItem {
   final String promptId;
   final double xRatio;
   final double yRatio;
+  final int highStars;
 }

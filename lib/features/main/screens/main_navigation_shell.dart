@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/widgets/curator_bottom_nav.dart';
 import '../../history/screens/history_screen.dart';
+import '../../history/repositories/history_repository.dart';
 import '../../home/screens/home_screen.dart';
+import '../../missions/repositories/mission_repository.dart';
 import '../../profile/screens/profile_screen.dart';
 
 class MainNavigationShell extends StatefulWidget {
@@ -10,10 +12,16 @@ class MainNavigationShell extends StatefulWidget {
     super.key,
     this.initialIndex = 0,
     this.userName,
+    this.missionRepository = const MockMissionRepository(),
+    this.historyRepository,
+    this.onLogout,
   });
 
   final int initialIndex;
   final String? userName;
+  final MissionRepository missionRepository;
+  final HistoryRepository? historyRepository;
+  final VoidCallback? onLogout;
 
   @override
   State<MainNavigationShell> createState() => _MainNavigationShellState();
@@ -57,9 +65,21 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          HomeScreen(isEmbedded: true, userName: name),
-          HistoryScreen(isEmbedded: true, userName: name),
-          ProfileScreen(isEmbedded: true, userName: name),
+          HomeScreen(
+            isEmbedded: true,
+            userName: name,
+            missionRepository: widget.missionRepository,
+          ),
+          HistoryScreen(
+            isEmbedded: true,
+            userName: name,
+            repository: widget.historyRepository,
+          ),
+          ProfileScreen(
+            isEmbedded: true,
+            userName: name,
+            onLogout: widget.onLogout,
+          ),
         ],
       ),
       bottomNavigationBar: CuratorBottomNav(

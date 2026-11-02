@@ -9,14 +9,20 @@ class SketchChallengeResultScreen extends StatelessWidget {
     super.key,
     required this.prompt,
     required this.lines,
-    required this.score,
+    required this.canvasSize,
+    required this.scoreAdded,
+    required this.starsEarned,
+    required this.feedbackMessage,
     this.onNext,
     this.onRetry,
   });
 
   final SketchChallengePrompt prompt;
   final List<DrawnLine> lines;
-  final int score;
+  final Size canvasSize;
+  final int scoreAdded;
+  final int starsEarned; // 1–3 dari BE
+  final String feedbackMessage;
   final VoidCallback? onNext;
   final VoidCallback? onRetry;
 
@@ -88,7 +94,7 @@ class SketchChallengeResultScreen extends StatelessWidget {
 
   Widget _buildSubtitle() {
     return Text(
-      '${prompt.title}mu sudah jadi!',
+      feedbackMessage,
       textAlign: TextAlign.center,
       style: const TextStyle(
         fontSize: 15,
@@ -98,31 +104,34 @@ class SketchChallengeResultScreen extends StatelessWidget {
     );
   }
 
-  // 3 bintang simetris: kiri & kanan sama besar, tengah lebih besar & lebih tinggi
-  // posisi dari mockup pixel analysis (card width ~345px)
+  // Bintang dinamis: 1 bintang tengah, 2 bintang tengah+kanan, 3 bintang penuh
   Widget _buildStars() {
     return SizedBox(
       height: 100,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // kiri (medium)
-          Positioned(
-            left: 20,
-            bottom: 0,
-            child: Image.asset(AssetPaths.star, width: 90, height: 90),
-          ),
-          // tengah (paling besar, lebih tinggi)
-          Positioned(
-            top: -20,
-            child: Image.asset(AssetPaths.star, width: 120, height: 120),
-          ),
-          // kanan (medium, sama level kiri)
-          Positioned(
-            right: 20,
-            bottom: 0,
-            child: Image.asset(AssetPaths.star, width: 90, height: 90),
-          ),
+          if (starsEarned >= 1)
+            Positioned(
+              left: starsEarned == 1 ? null : 20,
+              bottom: starsEarned == 1 ? 5 : 0,
+              child: Image.asset(
+                AssetPaths.star,
+                width: starsEarned == 1 ? 120 : 90,
+                height: starsEarned == 1 ? 120 : 90,
+              ),
+            ),
+          if (starsEarned >= 2)
+            Positioned(
+              top: -20,
+              child: Image.asset(AssetPaths.star, width: 120, height: 120),
+            ),
+          if (starsEarned >= 3)
+            Positioned(
+              right: 20,
+              bottom: 0,
+              child: Image.asset(AssetPaths.star, width: 90, height: 90),
+            ),
         ],
       ),
     );
@@ -139,7 +148,9 @@ class SketchChallengeResultScreen extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: lines.isNotEmpty
-            ? CustomPaint(painter: _ResultPainter(lines: lines))
+            ? CustomPaint(
+                painter: _ResultPainter(lines: lines, sourceSize: canvasSize),
+              )
             : const SizedBox(),
       ),
     );
@@ -160,7 +171,7 @@ class SketchChallengeResultScreen extends StatelessWidget {
           Image.asset(AssetPaths.star, width: 34, height: 34),
           const SizedBox(width: 8),
           Text(
-            '+$score Skor',
+            '+$scoreAdded Skor',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -226,12 +237,21 @@ class SketchChallengeResultScreen extends StatelessWidget {
 }
 
 class _ResultPainter extends CustomPainter {
-  const _ResultPainter({required this.lines});
+  const _ResultPainter({required this.lines, required this.sourceSize});
 
   final List<DrawnLine> lines;
+  final Size sourceSize;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final sx = sourceSize.width > 0 ? size.width / sourceSize.width : 1.0;
+    final sy = sourceSize.height > 0 ? size.height / sourceSize.height : 1.0;
+    final scale = sx < sy ? sx : sy;
+    final dx = (size.width - sourceSize.width * scale) / 2;
+    final dy = (size.height - sourceSize.height * scale) / 2;
+    canvas.translate(dx, dy);
+    canvas.scale(scale);
+
     for (final line in lines) {
       if (line.points.isEmpty) continue;
       final paint = Paint()

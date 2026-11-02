@@ -5,11 +5,7 @@ import 'app_dependencies.dart';
 import 'app_router.dart';
 
 class SketchooApp extends StatelessWidget {
-  const SketchooApp({
-    super.key,
-    required this.dependencies,
-    this.router,
-  });
+  const SketchooApp({super.key, required this.dependencies, this.router});
 
   final AppDependencies dependencies;
   final AppRouter? router;

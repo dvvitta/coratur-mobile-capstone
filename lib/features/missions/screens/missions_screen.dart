@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/constants/breakpoints.dart';
+import '../../../core/errors/app_failure.dart';
 import '../models/mission_item.dart';
 import '../repositories/mission_repository.dart';
 import '../widgets/mission_card.dart';
@@ -20,15 +22,53 @@ class MissionsScreen extends StatefulWidget {
 }
 
 class _MissionsScreenState extends State<MissionsScreen> {
-  late final List<MissionItem> _missions;
+  var _loading = true;
+  AppFailure? _failure;
+  List<MissionItem> _missions = const [];
 
   @override
   void initState() {
     super.initState();
-    _missions = widget.repository.getMissions();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _failure = null;
+    });
+    try {
+      final missions = await widget.repository.fetchMissions();
+      if (!mounted) return;
+      setState(() {
+        _missions = missions;
+        _loading = false;
+      });
+    } on AppFailure catch (failure) {
+      if (!mounted) return;
+      setState(() {
+        _failure = failure;
+        _loading = false;
+      });
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _failure = const AppFailure(
+          message: 'Misi gagal dimuat. Coba lagi ya.',
+          isRetryable: true,
+        );
+        _loading = false;
+      });
+    }
   }
 
   int get _completedCount => _missions.where((m) => m.isCompleted).length;
+
+  int get _earnedPoints => _missions
+      .where((m) => m.isCompleted)
+      .fold(0, (total, mission) => total + mission.reward);
+
+  bool get _sessionExpired => _failure?.code == 'UNAUTHENTICATED';
 
   @override
   Widget build(BuildContext context) {
@@ -56,40 +96,51 @@ class _MissionsScreenState extends State<MissionsScreen> {
                     const SizedBox(height: 12),
                     _buildHeader(),
                     const SizedBox(height: 16),
-                    _buildProgressCard(),
-                    const SizedBox(height: 20),
-                    ..._missions.asMap().entries.map((entry) {
-                      final idx = entry.key;
-                      final mission = entry.value;
-                      final bgColors = [
-                        const Color(0xFFFEF8E3),
-                        const Color(0xFFEDFBF1),
-                        const Color(0xFFEDF9FE),
-                        const Color(0xFFF7F3FF),
-                      ];
-                      final borderColors = [
-                        const Color(0xFFFDE8A5),
-                        const Color(0xFFC7F2D5),
-                        const Color(0xFFC5EDFB),
-                        const Color(0xFFE2D6FE),
-                      ];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: MissionCard(
-                          key: Key('mission_item_${mission.id}'),
-                          mission: mission,
-                          backgroundColor: bgColors[idx % bgColors.length],
-                          borderColor: borderColors[idx % borderColors.length],
-                          onAction: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Mulai ${mission.title}')),
-                            );
-                          },
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 8),
-                    _buildSurpriseBanner(),
+                    if (_loading)
+                      _buildLoading()
+                    else if (_failure != null)
+                      _buildError(_failure!)
+                    else if (_missions.isEmpty)
+                      _buildEmpty()
+                    else ...[
+                      _buildProgressCard(),
+                      const SizedBox(height: 20),
+                      ..._missions.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final mission = entry.value;
+                        final bgColors = [
+                          const Color(0xFFFEF8E3),
+                          const Color(0xFFEDFBF1),
+                          const Color(0xFFEDF9FE),
+                          const Color(0xFFF7F3FF),
+                        ];
+                        final borderColors = [
+                          const Color(0xFFFDE8A5),
+                          const Color(0xFFC7F2D5),
+                          const Color(0xFFC5EDFB),
+                          const Color(0xFFE2D6FE),
+                        ];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: MissionCard(
+                            key: Key('mission_item_${mission.id}'),
+                            mission: mission,
+                            backgroundColor: bgColors[idx % bgColors.length],
+                            borderColor:
+                                borderColors[idx % borderColors.length],
+                            onAction: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Mulai ${mission.title}'),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 8),
+                      _buildSurpriseBanner(),
+                    ],
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -136,8 +187,111 @@ class _MissionsScreenState extends State<MissionsScreen> {
     );
   }
 
+  Widget _buildLoading() {
+    return const Padding(
+      key: Key('missions_loading'),
+      padding: EdgeInsets.symmetric(vertical: 48),
+      child: Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(strokeWidth: 2.6),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildError(AppFailure failure) {
+    return Container(
+      key: const Key('missions_error'),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFECACA)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.cloud_off_rounded,
+            size: 36,
+            color: Color(0xFFB91C1C),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            failure.message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              color: Color(0xFF7F1D1D),
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (_sessionExpired)
+            FilledButton(
+              key: const Key('missions_login'),
+              onPressed: () => Navigator.of(context)
+                  .pushNamedAndRemoveUntil(AppRoutes.login, (route) => false),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF5B34EA),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Masuk lagi'),
+            )
+          else
+            OutlinedButton(
+              key: const Key('missions_retry'),
+              onPressed: _load,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF5B34EA),
+                side: const BorderSide(color: Color(0xFF5B34EA)),
+              ),
+              child: const Text('Coba lagi'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Container(
+      key: const Key('missions_empty'),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 28),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F7FC),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.flag_circle_outlined, size: 40, color: Color(0xFF9A97B0)),
+          SizedBox(height: 10),
+          Text(
+            'Belum ada misi hari ini',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Misi baru akan muncul di sini.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProgressCard() {
-    final progress = _missions.isNotEmpty ? _completedCount / _missions.length : 0.0;
+    final progress = _missions.isNotEmpty
+        ? _completedCount / _missions.length
+        : 0.0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -167,9 +321,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
                   ),
                 ),
               ),
-              const Text(
-                '+20',
-                style: TextStyle(
+              Text(
+                '+$_earnedPoints',
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF5B34EA),
@@ -184,7 +338,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
               value: progress,
               minHeight: 5,
               backgroundColor: Colors.white,
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5B34EA)),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF5B34EA),
+              ),
             ),
           ),
         ],

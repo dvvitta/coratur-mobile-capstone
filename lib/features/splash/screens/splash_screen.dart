@@ -89,11 +89,12 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
     _navigated = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) {
         return;
       }
-      Navigator.of(context).pushReplacementNamed(widget.controller.nextRoute);
+      final route = await widget.controller.nextRoute;
+      if (mounted) Navigator.of(context).pushReplacementNamed(route);
     });
   }
 

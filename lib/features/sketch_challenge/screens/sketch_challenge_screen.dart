@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/errors/app_failure.dart';
 import '../models/sketch_challenge_models.dart';
+import '../repositories/sketch_challenge_complete_repository.dart';
 import 'sketch_challenge_result_screen.dart';
 import '../widgets/sketch_canvas_painter.dart';
 
@@ -10,9 +13,13 @@ class SketchChallengeScreen extends StatefulWidget {
   const SketchChallengeScreen({
     super.key,
     this.initialScore = 20,
+    this.initialPromptId,
+    this.completeRepository,
   });
 
   final int initialScore;
+  final String? initialPromptId;
+  final SketchChallengeCompleteRepository? completeRepository;
 
   @override
   State<SketchChallengeScreen> createState() => _SketchChallengeScreenState();
@@ -27,44 +34,66 @@ class _SketchChallengeScreenState extends State<SketchChallengeScreen> {
     Color(0xFF3B82F6), // Blue
   ];
 
-  // List 5 prompt gambar putus-putus
+  // List prompt gambar putus-putus (asset: assets/sketch challenge/hewan/)
   final List<SketchChallengePrompt> _prompts = const [
     SketchChallengePrompt(
-      id: 'butterfly',
-      title: 'Kupu-kupu',
-      instruction: 'Ikuti garis putus - putus, gambar\nkupu-kupu!',
-      stepText: '2/5',
-    ),
-    SketchChallengePrompt(
-      id: 'apple',
-      title: 'Apel Merah',
-      instruction: 'Ikuti garis putus - putus, gambar\napel merah!',
+      id: 'bebek',
+      title: 'Bebek',
+      instruction: 'Ikuti garis putus - putus, gambar\nbebek lucu!',
       stepText: '1/5',
+      guideAssetPath: AssetPaths.sketchGuideBebek,
     ),
     SketchChallengePrompt(
-      id: 'star',
-      title: 'Bintang Kecil',
-      instruction: 'Ikuti garis putus - putus, gambar\nbintang kecil!',
+      id: 'kucing',
+      title: 'Kucing',
+      instruction: 'Ikuti garis putus - putus, gambar\nkucing lucu!',
+      stepText: '2/5',
+      guideAssetPath: AssetPaths.sketchGuideKucing,
+    ),
+    SketchChallengePrompt(
+      id: 'ikan',
+      title: 'Ikan',
+      instruction: 'Ikuti garis putus - putus, gambar\nikan!',
       stepText: '3/5',
+      guideAssetPath: AssetPaths.sketchGuideIkan,
     ),
     SketchChallengePrompt(
-      id: 'flower',
-      title: 'Bunga Indah',
-      instruction: 'Ikuti garis putus - putus, gambar\nbunga indah!',
+      id: 'kupu_kupu',
+      title: 'Kupu-Kupu',
+      instruction: 'Ikuti garis putus - putus, gambar\nkupu-kupu!',
       stepText: '4/5',
+      guideAssetPath: AssetPaths.sketchGuideKupuKupu,
     ),
     SketchChallengePrompt(
-      id: 'house',
-      title: 'Rumah Impian',
-      instruction: 'Ikuti garis putus - putus, gambar\nrumah impian!',
+      id: 'kura_kura',
+      title: 'Kura-Kura',
+      instruction: 'Ikuti garis putus - putus, gambar\nkura-kura!',
       stepText: '5/5',
+      guideAssetPath: AssetPaths.sketchGuideKuraKura,
     ),
   ];
 
-  final int _currentPromptIndex = 0;
+  late int _currentPromptIndex;
   Color _selectedColor = _paletteColors[0];
   List<DrawnLine> _lines = [];
   DrawnLine? _activeLine;
+  bool _submitting = false;
+  Size _canvasSize = Size.zero;
+  late DateTime _startedAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _startedAt = DateTime.now();
+    final targetId = widget.initialPromptId;
+    final index = targetId != null
+        ? _prompts.indexWhere((p) => p.id == targetId)
+        : -1;
+    _currentPromptIndex = index >= 0 ? index : 0;
+  }
+
+  // Route argument dibaca sekali di initState. Jangan baca ulang saat result
+  // ditutup, karena route masih membawa ID level awal dan akan reset progress.
 
   SketchChallengePrompt get _currentPrompt => _prompts[_currentPromptIndex];
 
@@ -84,17 +113,83 @@ class _SketchChallengeScreenState extends State<SketchChallengeScreen> {
     }
   }
 
-  void _onFinish() {
+  void _onFinish() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+
+    final prompt = _currentPrompt;
+    final lines = List<DrawnLine>.from(_lines);
+    final strokeCount = lines.length;
+    final totalPoints = lines.fold(0, (sum, l) => sum + l.points.length);
+    final durationSeconds = DateTime.now().difference(_startedAt).inSeconds;
+
+    SketchCompleteResult result;
+    try {
+      result =
+          await (widget.completeRepository?.completeLevel(
+                levelId: prompt.id,
+                strokeCount: strokeCount,
+                totalPoints: totalPoints,
+                durationSeconds: durationSeconds,
+              ) ??
+              Future.value(
+                const SketchCompleteResult(
+                  starsEarned: 3,
+                  scoreAdded: 20,
+                  totalStars: 20,
+                  feedbackMessage: 'Wah, hebat sekali! Kamu berhasil!',
+                ),
+              ));
+    } on AppFailure catch (error) {
+      if (mounted) {
+        setState(() => _submitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.message),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    } catch (_) {
+      if (mounted) {
+        setState(() => _submitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Hasil gambar belum tersimpan. Coba lagi.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SketchChallengeResultScreen(
-          prompt: _currentPrompt,
-          lines: List<DrawnLine>.from(_lines),
-          score: widget.initialScore,
-          onNext: () => Navigator.of(context).pop(),
+          prompt: prompt,
+          lines: lines,
+          canvasSize: _canvasSize,
+          scoreAdded: result.scoreAdded,
+          starsEarned: result.starsEarned,
+          feedbackMessage: result.feedbackMessage,
+          onNext: () {
+            Navigator.of(context).pop();
+            setState(() {
+              _currentPromptIndex = (_currentPromptIndex + 1) % _prompts.length;
+              _lines = [];
+              _startedAt = DateTime.now();
+            });
+          },
           onRetry: () {
             Navigator.of(context).pop();
-            setState(() => _lines = []);
+            setState(() {
+              _lines = [];
+              _startedAt = DateTime.now();
+            });
           },
         ),
       ),
@@ -301,7 +396,10 @@ class _SketchChallengeScreenState extends State<SketchChallengeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEBE6FD),
                       borderRadius: BorderRadius.circular(20),
@@ -336,57 +434,75 @@ class _SketchChallengeScreenState extends State<SketchChallengeScreen> {
             ),
 
             Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (_currentPrompt.guideAssetPath != null)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Image.asset(
-                        _currentPrompt.guideAssetPath!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => const SizedBox(),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  _canvasSize = Size(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                  );
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (_currentPrompt.guideAssetPath != null)
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: _buildGuideWidget(
+                            _currentPrompt.guideAssetPath!,
+                          ),
+                        ),
+                      Listener(
+                        behavior: HitTestBehavior.opaque,
+                        onPointerDown: (event) {
+                          setState(() {
+                            _activeLine = DrawnLine(
+                              points: [event.localPosition],
+                              color: _selectedColor,
+                              strokeWidth: 5.0,
+                            );
+                            _lines.add(_activeLine!);
+                          });
+                        },
+                        onPointerMove: (event) {
+                          if (_activeLine == null) return;
+                          setState(() {
+                            final updatedPoints = List<Offset>.from(
+                              _activeLine!.points,
+                            )..add(event.localPosition);
+                            _activeLine = DrawnLine(
+                              points: updatedPoints,
+                              color: _activeLine!.color,
+                              strokeWidth: _activeLine!.strokeWidth,
+                            );
+                            _lines = List<DrawnLine>.from(_lines)
+                              ..[_lines.length - 1] = _activeLine!;
+                          });
+                        },
+                        onPointerUp: (_) => _activeLine = null,
+                        onPointerCancel: (_) => _activeLine = null,
+                        child: CustomPaint(
+                          painter: SketchCanvasPainter(lines: _lines),
+                          size: Size.infinite,
+                        ),
                       ),
-                    ),
-                  Listener(
-                    behavior: HitTestBehavior.opaque,
-                    onPointerDown: (event) {
-                      setState(() {
-                        _activeLine = DrawnLine(
-                          points: [event.localPosition],
-                          color: _selectedColor,
-                          strokeWidth: 5.0,
-                        );
-                        _lines.add(_activeLine!);
-                      });
-                    },
-                    onPointerMove: (event) {
-                      if (_activeLine == null) return;
-                      setState(() {
-                        final updatedPoints = List<Offset>.from(_activeLine!.points)
-                          ..add(event.localPosition);
-                        _activeLine = DrawnLine(
-                          points: updatedPoints,
-                          color: _activeLine!.color,
-                          strokeWidth: _activeLine!.strokeWidth,
-                        );
-                        _lines = List<DrawnLine>.from(_lines)
-                          ..[_lines.length - 1] = _activeLine!;
-                      });
-                    },
-                    onPointerUp: (_) => _activeLine = null,
-                    onPointerCancel: (_) => _activeLine = null,
-                    child: CustomPaint(
-                      painter: SketchCanvasPainter(lines: _lines),
-                      size: Size.infinite,
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildGuideWidget(String path) {
+    if (path.toLowerCase().endsWith('.svg')) {
+      return SvgPicture.asset(path, fit: BoxFit.contain);
+    }
+    return Image.asset(
+      path,
+      fit: BoxFit.contain,
+      errorBuilder: (_, _, _) => const SizedBox(),
     );
   }
 
@@ -409,11 +525,7 @@ class _SketchChallengeScreenState extends State<SketchChallengeScreen> {
             color: const Color(0xFFF5F3FF),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF7C4DFF),
-            size: 20,
-          ),
+          child: Icon(icon, color: const Color(0xFF7C4DFF), size: 20),
         ),
       ),
     );

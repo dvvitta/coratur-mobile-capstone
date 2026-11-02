@@ -1,8 +1,4 @@
-enum MissionStatus {
-  notStarted,
-  inProgress,
-  completed,
-}
+enum MissionStatus { notStarted, inProgress, completed }
 
 class MissionItem {
   const MissionItem({
@@ -27,6 +23,9 @@ class MissionItem {
   final String iconPath;
   final String actionLabel;
 
-  bool get isCompleted => status == MissionStatus.completed || currentProgress >= totalProgress;
-  double get progressRatio => totalProgress > 0 ? (currentProgress / totalProgress).clamp(0.0, 1.0) : 0.0;
+  bool get isCompleted =>
+      status == MissionStatus.completed || currentProgress >= totalProgress;
+  double get progressRatio => totalProgress > 0
+      ? (currentProgress / totalProgress).clamp(0.0, 1.0)
+      : 0.0;
 }
