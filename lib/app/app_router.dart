@@ -69,9 +69,13 @@ class AppRouter {
       initialEmail: ModalRoute.of(context)?.settings.arguments as String?,
       rememberedEmailStore: dependencies?.rememberedEmailStore,
       controller: _authController(),
+      googleWebClientId: dependencies?.googleWebClientId,
     ),
-    AppRoutes.register: (_) =>
-        AuthScreen(initialTab: AuthTab.register, controller: _authController()),
+    AppRoutes.register: (_) => AuthScreen(
+      initialTab: AuthTab.register,
+      controller: _authController(),
+      googleWebClientId: dependencies?.googleWebClientId,
+    ),
     AppRoutes.verifyEmail: (context) {
       final email = ModalRoute.of(context)?.settings.arguments as String?;
       return VerifyEmailScreen(

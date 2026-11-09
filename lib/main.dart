@@ -14,7 +14,10 @@ Future<void> main() async {
   }
 
   final apiBaseUrl = dotenv.env['API_BASE_URL'];
-  final dependencies = AppDependencies.development(apiBaseUrl: apiBaseUrl);
+  final dependencies = AppDependencies.development(
+    apiBaseUrl: apiBaseUrl,
+    googleWebClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],
+  );
 
   runApp(SketchooApp(dependencies: dependencies));
 }

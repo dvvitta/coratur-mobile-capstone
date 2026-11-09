@@ -10,10 +10,11 @@ import '../../features/authentication/models/auth_session.dart';
 import '../../features/authentication/models/auth_user.dart';
 import '../../features/authentication/models/register_result.dart';
 import '../../features/authentication/repositories/auth_repository.dart';
+import '../../features/authentication/repositories/google_auth_repository.dart';
 import 'api_error.dart';
 
 /// Remote HTTP Auth Repository menghubungkan Flutter ke NestJS Backend.
-class RemoteAuthRepository implements AuthRepository {
+class RemoteAuthRepository implements AuthRepository, GoogleAuthRepository {
   RemoteAuthRepository({required this.baseUrl, http.Client? client})
     : _client = client ?? http.Client();
 
@@ -64,6 +65,31 @@ class RemoteAuthRepository implements AuthRepository {
       );
     }
 
+    _handleError(response);
+  }
+
+  @override
+  Future<AuthSession> loginWithGoogle({required String idToken}) async {
+    final response = await _post('/auth/google', {'id_token': idToken});
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic> &&
+            decoded['user'] is Map<String, dynamic>) {
+          final token = decoded['access_token'];
+          return AuthSession(
+            user: AuthUser.fromJson(decoded['user'] as Map<String, dynamic>),
+            accessToken: token is String && token.isNotEmpty ? token : null,
+          );
+        }
+      } catch (_) {
+        // Respons backend tidak dikenali.
+      }
+      throw const AppFailure(
+        message: 'Respons login Google tidak dikenali.',
+        isRetryable: true,
+      );
+    }
     _handleError(response);
   }
 

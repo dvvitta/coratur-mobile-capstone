@@ -171,7 +171,7 @@ void main() {
     expect(find.text('Beranda'), findsOneWidget);
   });
 
-  testWidgets('Google memberitahu belum terhubung', (tester) async {
+  testWidgets('Google meminta Client ID saat konfigurasi belum tersedia', (tester) async {
     addTearDown(() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
@@ -183,7 +183,7 @@ void main() {
     await tester.tap(find.byKey(const Key('auth_google')));
     await tester.pump();
 
-    expect(find.text('Masuk dengan Google belum terhubung.'), findsOneWidget);
+    expect(find.text('Client ID Web Google belum diatur di .env.'), findsOneWidget);
   });
 
   testWidgets('halaman daftar tidak memakai efek stretch saat ditarik', (
@@ -329,3 +329,4 @@ void main() {
     });
   });
 }
+

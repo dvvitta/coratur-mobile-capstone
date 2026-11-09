@@ -27,6 +27,7 @@ class AppDependencies {
     required this.sketchChallengeCompleteRepository,
     this.rememberedEmailStore = const SharedPreferencesRememberedEmailStore(),
     this.apiBaseUrl = '',
+    this.googleWebClientId = '',
     SessionStore? sessionStore,
   }) : sessionStore = sessionStore ?? SessionStore();
 
@@ -38,11 +39,13 @@ class AppDependencies {
   final SketchChallengeCompleteRepository sketchChallengeCompleteRepository;
   final RememberedEmailStore rememberedEmailStore;
   final String apiBaseUrl;
+  final String googleWebClientId;
   final SessionStore sessionStore;
 
-  factory AppDependencies.mock() {
+  factory AppDependencies.mock({String? googleWebClientId}) {
     return AppDependencies(
       environment: AppEnvironment.mock,
+      googleWebClientId: googleWebClientId ?? '',
       authRepository: const MockAuthRepository(),
       missionRepository: const MockMissionRepository(),
       historyRepository: _MockHistoryRepository(),
@@ -53,7 +56,10 @@ class AppDependencies {
     );
   }
 
-  factory AppDependencies.remote({required String apiBaseUrl}) {
+  factory AppDependencies.remote({
+    required String apiBaseUrl,
+    String? googleWebClientId,
+  }) {
     final sessionStore = SessionStore();
     return AppDependencies(
       environment: AppEnvironment.remote,
@@ -76,19 +82,32 @@ class AppDependencies {
             tokenProvider: () => sessionStore.accessToken,
           ),
       apiBaseUrl: apiBaseUrl,
+      googleWebClientId: googleWebClientId ?? '',
       sessionStore: sessionStore,
     );
   }
 
-  factory AppDependencies.development({String? apiBaseUrl}) {
+  factory AppDependencies.development({
+    String? apiBaseUrl,
+    String? googleWebClientId,
+  }) {
     if (apiBaseUrl != null && apiBaseUrl.isNotEmpty) {
-      return AppDependencies.remote(apiBaseUrl: apiBaseUrl);
+      return AppDependencies.remote(
+        apiBaseUrl: apiBaseUrl,
+        googleWebClientId: googleWebClientId,
+      );
     }
-    return AppDependencies.mock();
+    return AppDependencies.mock(googleWebClientId: googleWebClientId);
   }
 
-  factory AppDependencies.production({required String apiBaseUrl}) {
-    return AppDependencies.remote(apiBaseUrl: apiBaseUrl);
+  factory AppDependencies.production({
+    required String apiBaseUrl,
+    String? googleWebClientId,
+  }) {
+    return AppDependencies.remote(
+      apiBaseUrl: apiBaseUrl,
+      googleWebClientId: googleWebClientId,
+    );
   }
 
   bool get isMock => environment == AppEnvironment.mock;

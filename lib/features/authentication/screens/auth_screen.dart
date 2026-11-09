@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/asset_paths.dart';
@@ -20,6 +21,7 @@ class AuthScreen extends StatefulWidget {
     this.rememberedEmailStore,
     this.controller,
     this.playIntro = true,
+    this.googleWebClientId,
   });
 
   final AuthTab initialTab;
@@ -30,6 +32,7 @@ class AuthScreen extends StatefulWidget {
   final RememberedEmailStore? rememberedEmailStore;
   final AuthController? controller;
   final bool playIntro;
+  final String? googleWebClientId;
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -190,10 +193,48 @@ class _AuthScreenState extends State<AuthScreen>
     }
   }
 
-  void _onGoogle() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Masuk dengan Google belum terhubung.')),
-    );
+  Future<void> _onGoogle() async {
+    if (_submitting) return;
+    final webClientId = widget.googleWebClientId?.trim() ?? '';
+    if (webClientId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Client ID Web Google belum diatur di .env.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      final google = GoogleSignIn.instance;
+      await google.initialize(serverClientId: webClientId);
+      final account = await google.authenticate();
+      final idToken = account.authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw const AppFailure(
+          message:
+              'Google tidak memberikan ID token. Periksa konfigurasi OAuth.',
+        );
+      }
+
+      await _controller.signInWithGoogle(idToken: idToken);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(_controller.homeRoute);
+    } on AppFailure catch (failure) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failure.message)));
+    } on Object {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login Google gagal atau dibatalkan. Coba lagi.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
