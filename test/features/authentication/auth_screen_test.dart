@@ -134,6 +134,13 @@ void main() {
   });
 
   testWidgets('validasi email dan password di login', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    tester.view.physicalSize = const Size(412, 917);
+    tester.view.devicePixelRatio = 1;
+
     await tester.pumpWidget(harness());
 
     await tester.tap(find.byKey(const Key('auth_submit')));
@@ -144,6 +151,13 @@ void main() {
   });
 
   testWidgets('mock login menuju beranda', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    tester.view.physicalSize = const Size(412, 917);
+    tester.view.devicePixelRatio = 1;
+
     await tester.pumpWidget(harness());
 
     await tester.enterText(

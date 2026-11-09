@@ -13,11 +13,18 @@ import '../features/jelajah/screens/jelajah_screen.dart';
 import '../features/jelajah/screens/kenali_huruf_screen.dart';
 import '../features/jelajah/screens/tts_voice_debug_screen.dart';
 import '../features/main/screens/main_navigation_shell.dart';
+import '../features/badges/screens/badge_collection_screen.dart';
 import '../features/missions/repositories/mission_repository.dart';
 import '../features/missions/screens/missions_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/sketch_challenge/screens/sketch_challenge_level_screen.dart';
 import '../features/sketch_challenge/screens/sketch_challenge_screen.dart';
+import '../features/sketch_to_story/screens/sketch_to_story_screen.dart';
+import '../features/sketch_to_story/models/cerita_model.dart';
+import '../features/sketch_to_story/screens/cerita_screen.dart';
+import '../features/sketch_to_story/screens/hasil_sketch_to_story_screen.dart';
+import '../features/sketch_to_story/screens/memproses_gambar_screen.dart';
+import '../features/sketch_to_story/screens/upload_gambar_screen.dart';
 import '../features/splash/screens/splash_screen.dart';
 import 'app_dependencies.dart';
 
@@ -100,12 +107,36 @@ class AppRouter {
     AppRoutes.hitungHewan: (_) => const HitungHewanScreen(),
     AppRoutes.kenaliHuruf: (_) => const KenaliHurufScreen(),
     AppRoutes.ttsVoiceDebug: (_) => const TtsVoiceDebugScreen(),
-    AppRoutes.sketchToStory: (_) => const StructurePlaceholderPage(
-      title: 'Sketch-to-Story',
-      routeName: AppRoutes.sketchToStory,
-    ),
+    AppRoutes.sketchToStory: (_) => const SketchToStoryScreen(),
+    AppRoutes.uploadGambar: (_) => const UploadGambarScreen(),
+    AppRoutes.memprosesGambar: (context) {
+      final imageFile =
+          ModalRoute.of(context)?.settings.arguments as dynamic;
+      return MemprosesGambarScreen(
+        imageFile: imageFile,
+        onComplete: () {
+          Navigator.of(context).pushReplacementNamed(
+            AppRoutes.hasilSketchToStory,
+            arguments: imageFile,
+          );
+        },
+      );
+    },
+    AppRoutes.hasilSketchToStory: (context) {
+      final imageFile =
+          ModalRoute.of(context)?.settings.arguments as dynamic;
+      return HasilSketchToStoryScreen(imageFile: imageFile);
+    },
+    AppRoutes.ceritaSketchToStory: (context) {
+      final cerita =
+          ModalRoute.of(context)?.settings.arguments as CeritaModel?;
+      return CeritaScreen(
+        cerita: cerita ?? CeritaModel.mock(),
+      );
+    },
     AppRoutes.history: (_) => _mainRoute(1),
     AppRoutes.profile: (_) => _mainRoute(2),
+    AppRoutes.badges: (_) => const BadgeCollectionScreen(),
     AppRoutes.teacher: (_) => const StructurePlaceholderPage(
       title: 'Area Guru',
       routeName: AppRoutes.teacher,

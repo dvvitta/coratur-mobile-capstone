@@ -61,6 +61,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final name = widget.userName ?? 'Arka';
     return Scaffold(
       backgroundColor: Colors.white,
+      extendBody: true,
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),

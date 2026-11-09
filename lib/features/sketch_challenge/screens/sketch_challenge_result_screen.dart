@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../../../core/constants/asset_paths.dart';
 import '../models/sketch_challenge_models.dart';
+import '../widgets/result_drawing_card.dart';
+import '../widgets/result_stars_display.dart';
 
 class SketchChallengeResultScreen extends StatelessWidget {
   const SketchChallengeResultScreen({
@@ -55,12 +57,30 @@ class SketchChallengeResultScreen extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildHebat(),
+                      const Text(
+                        'Hebat!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF5B2EE0),
+                          letterSpacing: -1.5,
+                          height: 1.0,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      _buildSubtitle(),
+                      Text(
+                        feedbackMessage,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E1B4B),
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      _buildStars(),
-                      _buildDrawingCard(),
+                      ResultStarsDisplay(starsEarned: starsEarned),
+                      ResultDrawingCard(lines: lines, canvasSize: canvasSize),
                       const SizedBox(height: 18),
                       _buildScoreBadge(),
                       const SizedBox(height: 24),
@@ -74,84 +94,6 @@ class SketchChallengeResultScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHebat() {
-    return const Text(
-      'Hebat!',
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 48,
-        fontWeight: FontWeight.w900,
-        color: Color(0xFF5B2EE0),
-        letterSpacing: -1.5,
-        height: 1.0,
-      ),
-    );
-  }
-
-  Widget _buildSubtitle() {
-    return Text(
-      feedbackMessage,
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF1E1B4B),
-      ),
-    );
-  }
-
-  // Bintang dinamis: 1 bintang tengah, 2 bintang tengah+kanan, 3 bintang penuh
-  Widget _buildStars() {
-    return SizedBox(
-      height: 100,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (starsEarned >= 1)
-            Positioned(
-              left: starsEarned == 1 ? null : 20,
-              bottom: starsEarned == 1 ? 5 : 0,
-              child: Image.asset(
-                AssetPaths.star,
-                width: starsEarned == 1 ? 120 : 90,
-                height: starsEarned == 1 ? 120 : 90,
-              ),
-            ),
-          if (starsEarned >= 2)
-            Positioned(
-              top: -20,
-              child: Image.asset(AssetPaths.star, width: 120, height: 120),
-            ),
-          if (starsEarned >= 3)
-            Positioned(
-              right: 20,
-              bottom: 0,
-              child: Image.asset(AssetPaths.star, width: 90, height: 90),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrawingCard() {
-    return Container(
-      width: double.infinity,
-      height: 260,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4EEFF),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: lines.isNotEmpty
-            ? CustomPaint(
-                painter: _ResultPainter(lines: lines, sourceSize: canvasSize),
-              )
-            : const SizedBox(),
       ),
     );
   }
@@ -234,50 +176,4 @@ class SketchChallengeResultScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ResultPainter extends CustomPainter {
-  const _ResultPainter({required this.lines, required this.sourceSize});
-
-  final List<DrawnLine> lines;
-  final Size sourceSize;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final sx = sourceSize.width > 0 ? size.width / sourceSize.width : 1.0;
-    final sy = sourceSize.height > 0 ? size.height / sourceSize.height : 1.0;
-    final scale = sx < sy ? sx : sy;
-    final dx = (size.width - sourceSize.width * scale) / 2;
-    final dy = (size.height - sourceSize.height * scale) / 2;
-    canvas.translate(dx, dy);
-    canvas.scale(scale);
-
-    for (final line in lines) {
-      if (line.points.isEmpty) continue;
-      final paint = Paint()
-        ..color = line.color
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = line.strokeWidth
-        ..style = PaintingStyle.stroke;
-
-      if (line.points.length == 1) {
-        canvas.drawCircle(
-          line.points.first,
-          line.strokeWidth / 2,
-          paint..style = PaintingStyle.fill,
-        );
-        continue;
-      }
-
-      final path = Path()..moveTo(line.points.first.dx, line.points.first.dy);
-      for (int i = 1; i < line.points.length; i++) {
-        path.lineTo(line.points[i].dx, line.points[i].dy);
-      }
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _ResultPainter old) => old.lines != lines;
 }

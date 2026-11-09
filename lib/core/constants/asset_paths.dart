@@ -15,6 +15,11 @@ abstract final class AssetPaths {
   static const jelajahCilik = 'assets/images/jelajah cilik.png';
   static const jelajahPencil = 'assets/images/krayon jelajah.png';
   static const sketchToStory = 'assets/images/sketch-to-story.png';
+  static const creativeElephant = 'assets/images/Creative Learning with a Friendly Elephant.png';
+  static const drawingTablet = 'assets/images/Glossy Purple Drawing Tablet Icon.png';
+  static const imageUpload = 'assets/images/Glossy Purple Image Upload Icon.png';
+  static const gajahUnggahGambar = 'assets/images/gajah unggah gambar.png';
+  static const image21 = 'assets/images/image 21.png';
   static const palette = 'assets/images/palette.png';
   static const missionApple = 'assets/images/apell.png';
   static const missionPalette = 'assets/images/palet misi.png';
@@ -22,9 +27,11 @@ abstract final class AssetPaths {
   static const missionStory = 'assets/images/gambar jadi cerita.png';
   static const userAvatar = 'assets/images/user_avatar.png';
   static const userAvatarLarge = 'assets/images/user_avatar_large.png';
+  static const badge = 'assets/logo/badge.png';
   static const star = 'assets/images/bintang.png';
   static const levelBackground = 'assets/images/background level.png';
   static const historyCrayon = 'assets/images/krayon history.png';
+  static const historyCrayonMascot = 'assets/images/krayon ungu ceria.png';
   static const bebekBackground = 'assets/hitung_hewan/bebek.png';
   static const hitungHewanKucing = 'assets/hitung_hewan/Kucing.png';
   static const hitungHewanIkan = 'assets/hitung_hewan/ikan.png';
@@ -40,4 +47,12 @@ abstract final class AssetPaths {
       'assets/sketch challenge/hewan/kupu kupu.svg';
   static const sketchGuideKuraKura =
       'assets/sketch challenge/hewan/kura kura.svg';
+
+  static const gajahCerita = 'assets/images/cerita.png';
+
+  // GIF
+  static const gajahKacaPembesar =
+      'assets/gif/Gajah Ungu Ceria dengan Kaca Pembesar.gif';
+  static const gajahHasilSketch =
+      'assets/gif/hasil sketch story.gif';
 }

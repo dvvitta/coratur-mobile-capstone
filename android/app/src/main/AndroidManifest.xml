@@ -1,5 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Kamera -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Galeri: Android ≤ 12 (API 32) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Galeri: Android 13+ (API 33+) — hanya izin gambar -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <application
         android:label="curator"
         android:name="${applicationName}"
