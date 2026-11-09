@@ -16,7 +16,12 @@ abstract final class AppRoutes {
   static const kenaliHuruf = '/jelajah-cilik/kenali-huruf';
   static const ttsVoiceDebug = '/debug/tts-voice';
   static const sketchToStory = '/sketch-to-story';
+  static const uploadGambar = '/sketch-to-story/upload';
+  static const memprosesGambar = '/sketch-to-story/memproses';
+  static const hasilSketchToStory = '/sketch-to-story/hasil';
+  static const ceritaSketchToStory = '/sketch-to-story/cerita';
   static const history = '/history';
   static const profile = '/profile';
+  static const badges = '/badges';
   static const teacher = '/teacher';
 }

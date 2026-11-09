@@ -28,7 +28,7 @@ void main() {
       expect(find.text('Pelukis Cilik • Level 3'), findsOneWidget);
       expect(find.text('2 bintang lagi jadi Pelukis Hebat!'), findsOneWidget);
 
-      // 2. Tiga Stat (Gambar, Bintang, Hari beruntun)
+      // 2. Tiga Stat (Gambar, Bintang, Badge)
       expect(find.byKey(const Key('profile_stat_drawings')), findsOneWidget);
       expect(find.text('4'), findsOneWidget);
       expect(find.text('Gambar'), findsOneWidget);
@@ -37,9 +37,9 @@ void main() {
       expect(find.text('8'), findsOneWidget);
       expect(find.text('Bintang'), findsOneWidget);
 
-      expect(find.byKey(const Key('profile_stat_streak')), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
-      expect(find.text('Hari\nberuntun'), findsOneWidget);
+      expect(find.byKey(const Key('profile_stat_badges')), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('Badge'), findsOneWidget);
 
       // 3. Pengaturan
       expect(find.text('Pengaturan'), findsOneWidget);

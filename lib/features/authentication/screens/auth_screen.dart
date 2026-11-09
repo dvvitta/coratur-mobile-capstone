@@ -65,7 +65,7 @@ class _AuthScreenState extends State<AuthScreen>
     _confirmPassword = TextEditingController();
     _intro = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 720),
+      duration: const Duration(milliseconds: 600),
     );
     _cardSlide = Tween<Offset>(
       begin: const Offset(0, 1),
@@ -226,7 +226,7 @@ class _AuthScreenState extends State<AuthScreen>
                     150.0,
                   )),
                 ),
-                duration: const Duration(milliseconds: 280),
+                duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
                 builder: (context, offsetY, child) => Transform.translate(
                   offset: Offset(0, offsetY),

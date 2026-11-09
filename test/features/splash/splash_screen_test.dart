@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:curator/core/constants/app_routes.dart';
 import 'package:curator/core/constants/asset_paths.dart';
@@ -8,6 +9,10 @@ import 'package:curator/features/splash/screens/splash_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   Widget harness({Duration duration = const Duration(milliseconds: 400)}) {
     return MaterialApp(
