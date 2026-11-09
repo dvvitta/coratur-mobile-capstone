@@ -1,6 +1,10 @@
-# SKETCHOO Mobile
+# Tentang Aplikasi
 
-Aplikasi mobile SKETCHOO berbasis Flutter. Backend utama adalah NestJS; aplikasi mengaksesnya lewat REST API.
+SKETCHOO merupakan aplikasi mobile berbasis Flutter yang dikembangkan sebagai media edukasi interaktif untuk anak usia dini. Aplikasi ini dirancang untuk menggabungkan aktivitas menggambar dengan teknologi kecerdasan buatan, sehingga anak dapat mengeksplorasi kreativitas sekaligus mengembangkan kemampuan motorik dan literasi.
+
+Melalui fitur Digital Sketchpad, anak dapat membuat gambar atau sketsa secara langsung. Gambar tersebut kemudian diproses menggunakan teknologi Computer Vision untuk mengenali objek yang digambarkan. Hasil pengenalan objek selanjutnya digunakan sebagai dasar pembuatan cerita fabel interaktif dengan memanfaatkan Natural Language Processing (NLP).
+
+SKETCHOO diharapkan dapat menjadi media pembelajaran yang menyenangkan, kreatif, dan interaktif dengan mengintegrasikan teknologi ke dalam aktivitas belajar anak usia dini.
 
 ## Persiapan setelah clone
 
