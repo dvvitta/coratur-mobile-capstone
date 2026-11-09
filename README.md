@@ -1,42 +1,44 @@
-# curator
+# SKETCHOO Mobile
 
-A new Flutter project.
+Aplikasi mobile SKETCHOO berbasis Flutter. Backend utama adalah NestJS; aplikasi mengaksesnya lewat REST API.
 
-## Getting Started
+## Persiapan setelah clone
 
-This project is a starting point for a Flutter application.
+1. Pastikan Flutter tersedia. Project ini memerlukan Dart SDK 3.13.4 atau lebih baru sesuai batas di `pubspec.yaml`.
+2. Buat konfigurasi lokal dari template:
 
-A few resources to get you started if this is your first Flutter project:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+3. Atur `API_BASE_URL` di `.env` sesuai perangkat:
+   - Android Emulator: `http://10.0.2.2:3000/api/v1`.
+   - Windows/Web atau iOS Simulator: `http://localhost:3000/api/v1`.
+   - Android via USB: gunakan `http://localhost:3000/api/v1`, lalu jalankan `adb reverse tcp:3000 tcp:3000`.
+   - HP Android via Wi-Fi: gunakan IP LAN komputer, misalnya `http://192.168.1.10:3000/api/v1`; keduanya harus di jaringan yang sama.
+4. Jalankan backend NestJS dari folder repo backend dengan `docker compose up --build -d`; pastikan port 3000 aktif.
+5. Dari folder mobile jalankan:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+   ```sh
+   flutter pub get
+   flutter run
+   ```
 
-## Menjalankan dengan backend
+`API_BASE_URL` dibaca dari `.env` yang dibundel sebagai asset Flutter. Perubahan `.env` perlu full restart/rebuild, bukan hot reload. File `.env` di-ignore Git dan hanya berisi URL API—jangan taruh Supabase secret key atau kredensial Brevo di aplikasi mobile.
 
-`API_BASE_URL` dibaca dari `.env` (asset, jadi perubahan butuh rebuild, bukan
-hot reload). Backend NestJS berjalan di port 3000.
+## Pemeriksaan
 
-| Target | `API_BASE_URL` | Catatan |
-| --- | --- | --- |
-| macOS / iOS Simulator | `http://localhost:3000/api/v1` | — |
-| Android emulator | `http://localhost:3000/api/v1` | jalankan `adb reverse tcp:3000 tcp:3000` |
-| HP Android via kabel | `http://localhost:3000/api/v1` | wajib `adb reverse tcp:3000 tcp:3000` |
-| HP via Wi-Fi | `http://<IP-LAN-Mac>:3000/api/v1` | HP dan Mac di jaringan yang sama |
+```sh
+flutter analyze
+flutter test
+```
 
-Untuk HP Android lewat kabel:
+## Menjalankan di Android via USB
 
-```bash
-adb devices                       # pastikan device muncul & sudah authorize
-adb reverse tcp:3000 tcp:3000     # ulangi setiap habis cabut/reconnect
+```sh
+adb devices
+adb reverse tcp:3000 tcp:3000
 flutter run -d <device-id>
 ```
 
-Android sudah mengizinkan HTTP lokal (`usesCleartextTraffic="true"`). Untuk
-iPhone fisik, tambahkan pengecualian ATS di `ios/Runner/Info.plist` sebelum
-memakai `http://`.
-
+Ulangi `adb reverse` setelah perangkat dicabut atau tersambung kembali. Android sudah mengizinkan HTTP lokal lewat `usesCleartextTraffic`; untuk iPhone fisik, tambahkan pengecualian ATS di `ios/Runner/Info.plist` sebelum menggunakan `http://`.

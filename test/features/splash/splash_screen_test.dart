@@ -62,6 +62,7 @@ void main() {
   testWidgets('frame 3: background muncul dan navigasi ke onboarding', (
     tester,
   ) async {
+    SharedPreferences.setMockInitialValues({});
     const duration = Duration(milliseconds: 400);
     await tester.pumpWidget(harness(duration: duration));
     await tester.pump();

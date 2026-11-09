@@ -4,6 +4,7 @@ import '../models/auth_submit_outcome.dart';
 import '../models/auth_tab.dart';
 import '../models/auth_user.dart';
 import '../repositories/auth_repository.dart';
+import '../repositories/google_auth_repository.dart';
 
 class AuthController {
   AuthController({required this.repository, this.onUserAuthenticated});
@@ -109,6 +110,27 @@ class AuthController {
     } on Object {
       throw const AppFailure(
         message: 'Tidak bisa masuk sekarang. Coba lagi ya.',
+        isRetryable: true,
+      );
+    }
+  }
+
+  Future<void> signInWithGoogle({required String idToken}) async {
+    final repository = this.repository;
+    if (repository is! GoogleAuthRepository) {
+      throw const AppFailure(
+        message: 'Login Google belum tersedia pada konfigurasi ini.',
+      );
+    }
+    try {
+      final session = await (repository as GoogleAuthRepository)
+          .loginWithGoogle(idToken: idToken);
+      onUserAuthenticated?.call(session.user, session.accessToken);
+    } on AppFailure {
+      rethrow;
+    } on Object {
+      throw const AppFailure(
+        message: 'Login Google gagal. Coba lagi.',
         isRetryable: true,
       );
     }
