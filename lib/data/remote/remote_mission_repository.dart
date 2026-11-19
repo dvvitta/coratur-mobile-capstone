@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -61,13 +62,15 @@ class RemoteMissionRepository implements MissionRepository {
 
     final http.Response response;
     try {
-      response = await _client.get(
-        _missionsUri(),
-        headers: {
-          HttpHeaders.acceptHeader: 'application/json',
-          HttpHeaders.authorizationHeader: 'Bearer $token',
-        },
-      );
+      response = await _client
+          .get(
+            _missionsUri(),
+            headers: {
+              HttpHeaders.acceptHeader: 'application/json',
+              HttpHeaders.authorizationHeader: 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
     } on Object {
       throw const AppFailure(
         message: 'Tidak bisa menghubungi server. Periksa jaringan kamu.',

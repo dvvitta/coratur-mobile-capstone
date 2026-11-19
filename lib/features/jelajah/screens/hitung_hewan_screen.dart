@@ -58,7 +58,7 @@ class _HitungHewanScreenState extends State<HitungHewanScreen>
   Future<void> _playBackgroundMusic() async {
     try {
       await _backgroundPlayer.setReleaseMode(ReleaseMode.loop);
-      await _backgroundPlayer.setVolume(0.10);
+      await _backgroundPlayer.setVolume(0.30);
       await _backgroundPlayer.play(AssetSource('backsound/sound_jelajah.mp3'));
     } catch (error) {
       debugPrint('[HitungHewan] background music error: $error');

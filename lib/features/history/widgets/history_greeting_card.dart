@@ -42,7 +42,7 @@ class HistoryGreetingCard extends StatelessWidget {
           // ── Teks & badge kiri ───────────────────────────────────────────
           Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 140, 16),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -65,20 +65,21 @@ class HistoryGreetingCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   if (hasArtworks)
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
                       children: [
                         _StatBadge(
                           icon: AssetPaths.star,
-                          label: '$totalStars Bintang',
+                          label: '$totalArtworks selesai',
                         ),
-                        const SizedBox(width: 8),
                         _StatBadge(
                           iconWidget: const Icon(
                             Icons.palette_rounded,
                             size: 15,
                             color: Color(0xFF7C4DFF),
                           ),
-                          label: '$totalArtworks Karya',
+                          label: '$totalStars bintang',
                         ),
                       ],
                     ),
@@ -106,11 +107,8 @@ class HistoryGreetingCard extends StatelessWidget {
 
 /// Badge kecil putih untuk menampilkan stat (bintang / karya).
 class _StatBadge extends StatelessWidget {
-  const _StatBadge({
-    this.icon,
-    this.iconWidget,
-    required this.label,
-  }) : assert(icon != null || iconWidget != null);
+  const _StatBadge({this.icon, this.iconWidget, required this.label})
+    : assert(icon != null || iconWidget != null);
 
   final String? icon;
   final Widget? iconWidget;

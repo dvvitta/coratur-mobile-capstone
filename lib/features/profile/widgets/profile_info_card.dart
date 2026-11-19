@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/asset_paths.dart';
+import '../models/profile_photo.dart';
 
 /// Kartu informasi profil: avatar, nama, level, dan progres.
 class ProfileInfoCard extends StatelessWidget {
@@ -11,6 +11,7 @@ class ProfileInfoCard extends StatelessWidget {
     required this.levelProgress,
     required this.remainingText,
     required this.onEditAvatar,
+    this.photo,
   });
 
   final String userName;
@@ -18,6 +19,9 @@ class ProfileInfoCard extends StatelessWidget {
   final double levelProgress;
   final String remainingText;
   final VoidCallback onEditAvatar;
+
+  /// Foto profil aktif. Bila null, memakai avatar bawaan.
+  final ProfilePhoto? photo;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +41,7 @@ class ProfileInfoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _Avatar(onEditAvatar: onEditAvatar),
+          _Avatar(photo: photo, onEditAvatar: onEditAvatar),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -79,9 +83,26 @@ class ProfileInfoCard extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.onEditAvatar});
+  const _Avatar({required this.onEditAvatar, this.photo});
 
   final VoidCallback onEditAvatar;
+  final ProfilePhoto? photo;
+
+  Widget _buildImage() {
+    final activePhoto = photo;
+    final bytes = activePhoto?.bytes;
+    if (activePhoto != null && activePhoto.isCustom && bytes != null) {
+      return Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true);
+    }
+
+    return Image.asset(
+      activePhoto?.assetPath ?? ProfilePhoto.fallback.assetPath!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => const Center(
+        child: Icon(Icons.face_rounded, size: 46, color: Color(0xFF7042F5)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,19 +126,7 @@ class _Avatar extends StatelessWidget {
                   ),
                 ],
               ),
-              child: ClipOval(
-                child: Image.asset(
-                  AssetPaths.userAvatarLarge,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const Center(
-                    child: Icon(
-                      Icons.face_rounded,
-                      size: 46,
-                      color: Color(0xFF7042F5),
-                    ),
-                  ),
-                ),
-              ),
+              child: ClipOval(child: _buildImage()),
             ),
           ),
           Positioned(
@@ -177,11 +186,7 @@ class _LevelPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.star_rounded,
-              size: 15,
-              color: Color(0xFFF2B51B),
-            ),
+            const Icon(Icons.star_rounded, size: 15, color: Color(0xFFF2B51B)),
             const SizedBox(width: 5),
             Flexible(
               child: Text(

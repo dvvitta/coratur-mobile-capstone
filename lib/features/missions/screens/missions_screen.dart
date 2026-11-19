@@ -39,6 +39,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
   ];
 
   var _loading = true;
+  var _requestInFlight = false;
   AppFailure? _failure;
   List<MissionItem> _missions = const [];
 
@@ -49,6 +50,8 @@ class _MissionsScreenState extends State<MissionsScreen> {
   }
 
   Future<void> _load() async {
+    if (_requestInFlight || !mounted) return;
+    _requestInFlight = true;
     setState(() {
       _loading = true;
       _failure = null;
@@ -75,6 +78,8 @@ class _MissionsScreenState extends State<MissionsScreen> {
         );
         _loading = false;
       });
+    } finally {
+      _requestInFlight = false;
     }
   }
 

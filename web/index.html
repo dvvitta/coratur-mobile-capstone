@@ -31,16 +31,61 @@
 
   <title>curator</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    Mobile width on desktop browsers.
+
+    The app is mounted into #flutter_host (see flutter_bootstrap.js) instead of
+    taking over the whole page. The host is capped at a phone width (412px) and
+    fills the browser height, so on a desktop browser the UI keeps its mobile
+    proportions instead of stretching into a wide desktop layout.
+
+    On a real phone the host simply becomes full width, so the app still runs
+    edge-to-edge as usual.
+
+    Need the old full-window behaviour? Open `?layout=full`.
+  -->
+  <style>
+    html {
+      height: 100%;
+      background-color: #f8f6ff;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      background-color: #f8f6ff;
+    }
+
+    #flutter_host {
+      width: 412px;
+      width: min(412px, 100vw);
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #f8f6ff;
+    }
+
+    html.flt-fullwidth #flutter_host {
+      width: 100vw;
+    }
+  </style>
+
+  <script>
+    (function () {
+      if (new URLSearchParams(window.location.search).get('layout') === 'full') {
+        document.documentElement.classList.add('flt-fullwidth');
+      }
+    })();
+  </script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div id="flutter_host"></div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

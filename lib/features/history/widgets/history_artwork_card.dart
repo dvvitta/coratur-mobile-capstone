@@ -79,6 +79,43 @@ class HistoryArtworkCard extends StatelessWidget {
 
 // ── Sub-widgets ───────────────────────────────────────────────────────────────
 
+class _ArtworkImage extends StatelessWidget {
+  const _ArtworkImage({required this.artwork});
+
+  final HistoryArtwork artwork;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = artwork.imageUrl;
+    if (url != null && url.isNotEmpty) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _fallback,
+      );
+    }
+    if (artwork.imageAssetPath.isNotEmpty) {
+      return Image.asset(
+        artwork.imageAssetPath,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _fallback,
+      );
+    }
+    return _fallback;
+  }
+
+  static const _fallback = ColoredBox(
+    color: Color(0xFFEDE9FF),
+    child: Center(
+      child: Icon(
+        Icons.image_not_supported_rounded,
+        color: Color(0xFFB0A8D9),
+        size: 36,
+      ),
+    ),
+  );
+}
+
 /// Thumbnail dengan height fixed 110px, rounded di bagian atas sesuai card.
 class _Thumbnail extends StatelessWidget {
   const _Thumbnail({required this.artwork});
@@ -93,20 +130,7 @@ class _Thumbnail extends StatelessWidget {
           child: SizedBox(
             height: 110,
             width: double.infinity,
-            child: Image.asset(
-              artwork.imageAssetPath,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const ColoredBox(
-                color: Color(0xFFEDE9FF),
-                child: Center(
-                  child: Icon(
-                    Icons.image_not_supported_rounded,
-                    color: Color(0xFFB0A8D9),
-                    size: 36,
-                  ),
-                ),
-              ),
-            ),
+            child: _ArtworkImage(artwork: artwork),
           ),
         ),
         Positioned(
@@ -183,8 +207,11 @@ class _DateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.calendar_today_rounded,
-            size: 11, color: Color(0xFF94A3B8)),
+        const Icon(
+          Icons.calendar_today_rounded,
+          size: 11,
+          color: Color(0xFF94A3B8),
+        ),
         const SizedBox(width: 4),
         Text(
           label,
@@ -250,8 +277,9 @@ class _ContinueButton extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             key: Key('history_continue_$artworkId'),
-            onTap: () => Navigator.of(context)
-                .pushNamed(AppRoutes.sketchChallengeLevels),
+            onTap: () =>
+                Navigator.of(context)
+                    .pushNamed(AppRoutes.sketchChallengeLevels),
             borderRadius: BorderRadius.circular(17),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,

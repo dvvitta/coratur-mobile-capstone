@@ -48,7 +48,7 @@ class HistoryScreen extends StatefulWidget {
       levelLabel: 'Level 2 • Kendaraan',
       dateLabel: '10 Apr 2025',
       imageAssetPath: AssetPaths.historyArtMobil,
-      status: ArtworkStatus.inProgress,
+      status: ArtworkStatus.completed,
       earnedStars: 2,
       totalStars: 3,
     ),
@@ -129,8 +129,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   // Kalkulasi dari data real — bukan hardcode.
-  int get _totalStars =>
-      _allArtworks.fold(0, (sum, a) => sum + a.earnedStars);
+  int get _totalStars => _allArtworks.fold(0, (sum, a) => sum + a.earnedStars);
 
   int get _totalArtworks => _allArtworks.length;
 
@@ -151,8 +150,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Scaffold(
         backgroundColor: HomeBackground.baseColor,
         extendBody: true,
-        bottomNavigationBar:
-            widget.isEmbedded ? null : const HistoryBottomNav(),
+        bottomNavigationBar: widget.isEmbedded
+            ? null
+            : const HistoryBottomNav(),
         body: HomeBackground(
           child: SafeArea(
             bottom: false,
@@ -193,8 +193,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           isEmbedded: widget.isEmbedded,
                         )
                       : HistoryEmptyState(
-                          onStartDrawing:
-                              _allArtworks.isEmpty ? _onStartDrawing : null,
+                          onStartDrawing: _allArtworks.isEmpty
+                              ? _onStartDrawing
+                              : null,
                           isEmbedded: widget.isEmbedded,
                         ),
                 ),
@@ -290,10 +291,7 @@ class _CircleBackButton extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ArtworkGrid extends StatelessWidget {
-  const _ArtworkGrid({
-    required this.artworks,
-    required this.isEmbedded,
-  });
+  const _ArtworkGrid({required this.artworks, required this.isEmbedded});
 
   final List<HistoryArtwork> artworks;
   final bool isEmbedded;

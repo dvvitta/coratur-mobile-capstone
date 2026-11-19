@@ -69,6 +69,7 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/avatar/
     - assets/logo/
     - assets/badge/
     - assets/illustrations/

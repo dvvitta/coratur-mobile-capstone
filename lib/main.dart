@@ -13,7 +13,10 @@ Future<void> main() async {
     // Abaikan jika .env tidak ditemukan, fallback ke mock/default
   }
 
-  final apiBaseUrl = dotenv.env['API_BASE_URL'];
+  final envUrl = dotenv.env['API_BASE_URL']?.trim();
+  final apiBaseUrl = (envUrl != null && envUrl.isNotEmpty)
+      ? envUrl
+      : 'https://sketchoo-backend.vercel.app/api/v1';
   final dependencies = AppDependencies.development(
     apiBaseUrl: apiBaseUrl,
     googleWebClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],

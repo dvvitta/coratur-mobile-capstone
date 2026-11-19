@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/services/tts_service.dart';
 import '../controllers/cerita_controller.dart';
 import '../models/cerita_model.dart';
 
@@ -18,10 +19,7 @@ import '../models/cerita_model.dart';
 ///
 /// Flow: HasilSketchToStory → **CeritaScreen**
 class CeritaScreen extends StatefulWidget {
-  const CeritaScreen({
-    super.key,
-    required this.cerita,
-  });
+  const CeritaScreen({super.key, required this.cerita});
 
   final CeritaModel cerita;
 
@@ -31,6 +29,7 @@ class CeritaScreen extends StatefulWidget {
 
 class _CeritaScreenState extends State<CeritaScreen> {
   late final CeritaController _controller;
+  final _tts = TtsService.instance;
 
   @override
   void initState() {
@@ -40,33 +39,22 @@ class _CeritaScreenState extends State<CeritaScreen> {
       ..onStopTts = _stopTts;
   }
 
-  // ── TTS handlers (disambung ke flutter_tts) ───────────────────────────────
+  // ── TTS handlers ─────────────────────────────────────────────────────────
 
-  void _startTts() {
-    // TODO: sambungkan ke flutter_tts ketika sudah diintegrasikan
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Memulai pembacaan cerita 🔊'),
-        backgroundColor: const Color(0xFF7C4DFF),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+  Future<void> _startTts() async {
+    await _tts.speak(_controller.fullTtsText);
+    if (mounted) {
+      _controller.onTtsCompleted();
+    }
   }
 
   void _stopTts() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Pembacaan cerita dihentikan'),
-        backgroundColor: const Color(0xFF7C4DFF),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    _tts.stop();
   }
 
   @override
   void dispose() {
+    _tts.stop();
     _controller
       ..onStartTts = null
       ..onStopTts = null
@@ -85,9 +73,7 @@ class _CeritaScreenState extends State<CeritaScreen> {
             Expanded(
               child: ListenableBuilder(
                 listenable: _controller,
-                builder: (context, _) => _CeritaBody(
-                  controller: _controller,
-                ),
+                builder: (context, _) => _CeritaBody(controller: _controller),
               ),
             ),
           ],
@@ -193,10 +179,7 @@ class _HeroImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: _imageWidget(),
-      ),
+      child: AspectRatio(aspectRatio: 16 / 9, child: _imageWidget()),
     );
   }
 
@@ -216,8 +199,11 @@ class _HeroImage extends StatelessWidget {
       errorBuilder: (context, error, _) => Container(
         color: const Color(0xFFF0EEFF),
         child: const Center(
-          child: Icon(Icons.broken_image_rounded,
-              size: 64, color: Color(0xFFDDD5FF)),
+          child: Icon(
+            Icons.broken_image_rounded,
+            size: 64,
+            color: Color(0xFFDDD5FF),
+          ),
         ),
       ),
     );
@@ -312,10 +298,7 @@ class _PesanMoralCard extends StatelessWidget {
                   children: [
                     const Text(
                       '☆',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFFFFC107),
-                      ),
+                      style: TextStyle(fontSize: 14, color: Color(0xFFFFC107)),
                     ),
                     const SizedBox(width: 6),
                     const Text(

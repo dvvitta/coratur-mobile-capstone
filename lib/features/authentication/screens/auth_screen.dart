@@ -193,6 +193,10 @@ class _AuthScreenState extends State<AuthScreen>
     }
   }
 
+  /// Inisialisasi Google Sign-In hanya sekali per proses. Memanggil
+  /// [GoogleSignIn.initialize] berulang kali akan melempar error.
+  Future<void>? _googleInit;
+
   Future<void> _onGoogle() async {
     if (_submitting) return;
     final webClientId = widget.googleWebClientId?.trim() ?? '';
@@ -208,7 +212,13 @@ class _AuthScreenState extends State<AuthScreen>
     setState(() => _submitting = true);
     try {
       final google = GoogleSignIn.instance;
-      await google.initialize(serverClientId: webClientId);
+      try {
+        await (_googleInit ??= google.initialize(serverClientId: webClientId));
+      } on Object {
+        // Izinkan percobaan ulang bila inisialisasi gagal.
+        _googleInit = null;
+        rethrow;
+      }
       final account = await google.authenticate();
       final idToken = account.authentication.idToken;
       if (idToken == null || idToken.isEmpty) {
@@ -221,11 +231,20 @@ class _AuthScreenState extends State<AuthScreen>
       await _controller.signInWithGoogle(idToken: idToken);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(_controller.homeRoute);
+    } on GoogleSignInException catch (error) {
+      debugPrint(
+        '[GOOGLE AUTH] code=${error.code} '
+        'description=${error.description} details=${error.details}',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(_googleErrorMessage(error))));
     } on AppFailure catch (failure) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(failure.message)));
-    } on Object {
+    } on Object catch (error) {
+      debugPrint('[GOOGLE AUTH] error=$error');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -234,6 +253,22 @@ class _AuthScreenState extends State<AuthScreen>
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  String _googleErrorMessage(GoogleSignInException error) {
+    switch (error.code) {
+      case GoogleSignInExceptionCode.canceled:
+        return 'Login Google dibatalkan.';
+      case GoogleSignInExceptionCode.clientConfigurationError:
+        return 'Konfigurasi OAuth Google tidak cocok. '
+            'Daftarkan package Android dan SHA-1 aplikasi ini di Google Cloud.';
+      case GoogleSignInExceptionCode.providerConfigurationError:
+        return 'Google Play Services belum siap. Perbarui lalu coba lagi.';
+      case GoogleSignInExceptionCode.uiUnavailable:
+        return 'Jendela Google Sign-In tidak bisa dibuka. Coba lagi.';
+      default:
+        return 'Login Google gagal. Coba lagi.';
     }
   }
 

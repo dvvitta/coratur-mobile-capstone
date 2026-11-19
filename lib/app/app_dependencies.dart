@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import '../data/mock/mock_auth_repository.dart';
+import '../data/remote/api_error.dart';
 import '../data/remote/remote_auth_repository.dart';
+import '../features/profile/models/profile_photo.dart';
 import '../data/remote/remote_mission_repository.dart';
 import '../data/remote/remote_history_repository.dart';
 import '../features/history/models/history_artwork_model.dart';
@@ -29,7 +34,9 @@ class AppDependencies {
     this.apiBaseUrl = '',
     this.googleWebClientId = '',
     SessionStore? sessionStore,
-  }) : sessionStore = sessionStore ?? SessionStore();
+    http.Client? client,
+  })  : sessionStore = sessionStore ?? SessionStore(),
+        _client = client ?? http.Client();
 
   final AppEnvironment environment;
   final AuthRepository authRepository;
@@ -41,6 +48,7 @@ class AppDependencies {
   final String apiBaseUrl;
   final String googleWebClientId;
   final SessionStore sessionStore;
+  final http.Client _client;
 
   factory AppDependencies.mock({String? googleWebClientId}) {
     return AppDependencies(
@@ -111,6 +119,59 @@ class AppDependencies {
   }
 
   bool get isMock => environment == AppEnvironment.mock;
+
+  /// Menghubungkan siswa ke kelas menggunakan kode 6-karakter dari guru.
+  Future<Map<String, String>> joinClassroom(String code) async {
+    final token = sessionStore.accessToken;
+    final cleanBase = apiBaseUrl.endsWith('/')
+        ? apiBaseUrl.substring(0, apiBaseUrl.length - 1)
+        : apiBaseUrl;
+    final response = await _client
+        .post(
+          Uri.parse('$cleanBase/classrooms/join'),
+          headers: {
+            'Content-Type': 'application/json',
+            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({'code': code}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return {
+        'className': (data['classroom_name'] as String?) ?? 'Kelas',
+        'teacherName': 'Guru: ${(data['teacher_name'] as String?) ?? 'Guru Kelas'}',
+      };
+    }
+    throw appFailureFromResponse(response);
+  }
+
+  /// Sinkronisasi foto profil aktif ke memori sesi dan backend (users/me).
+  Future<void> updateProfilePhoto(ProfilePhoto photo) async {
+    sessionStore.setProfilePhoto(photo);
+    final token = sessionStore.accessToken;
+    if (token == null || token.isEmpty || apiBaseUrl.isEmpty) return;
+
+    final cleanBase = apiBaseUrl.endsWith('/')
+        ? apiBaseUrl.substring(0, apiBaseUrl.length - 1)
+        : apiBaseUrl;
+
+    try {
+      await _client
+          .patch(
+            Uri.parse('$cleanBase/users/me'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({'avatar': photo.toSerializedString()}),
+          )
+          .timeout(const Duration(seconds: 15));
+    } catch (_) {
+      // Kegagalan jaringan tidak membatalkan penyimpanan lokal di perangkat
+    }
+  }
 }
 
 // Fallback in-memory untuk mode mock / test — level 1 active, sisanya locked

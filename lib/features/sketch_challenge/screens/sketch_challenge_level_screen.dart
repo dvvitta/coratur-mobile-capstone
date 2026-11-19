@@ -27,6 +27,8 @@ class _SketchChallengeLevelScreenState
     extends State<SketchChallengeLevelScreen> {
   List<LevelItem>? _levels;
   bool _loading = true;
+  bool _requestInFlight = false;
+  bool _navigating = false;
   String? _error;
 
   static const _giftXRatio = 0.32;
@@ -49,6 +51,8 @@ class _SketchChallengeLevelScreenState
   }
 
   Future<void> _fetchLevels() async {
+    if (_requestInFlight || !mounted) return;
+    _requestInFlight = true;
     setState(() {
       _loading = true;
       _error = null;
@@ -60,8 +64,8 @@ class _SketchChallengeLevelScreenState
         levels = _defaultLevels();
       } else {
         levels = await repo.fetchLevels();
-        if (levels.isEmpty) levels = _defaultLevels();
       }
+      if (!mounted) return;
       setState(() {
         _levels = levels;
         _loading = false;
@@ -80,15 +84,19 @@ class _SketchChallengeLevelScreenState
         }
       });
     } on AppFailure catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.message;
         _loading = false;
       });
     } catch (_) {
+      if (!mounted) return;
       setState(() {
         _error = 'Tidak bisa memuat level. Periksa jaringan kamu.';
         _loading = false;
       });
+    } finally {
+      _requestInFlight = false;
     }
   }
 
@@ -175,11 +183,20 @@ class _SketchChallengeLevelScreenState
   }
 
   Future<void> _openCanvas() async {
-    await Navigator.of(
-      context,
-    ).pushNamed(AppRoutes.sketchChallenge, arguments: _selectedLevel.promptId);
-    if (mounted && widget.repository != null) {
-      await _fetchLevels();
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.of(context).pushNamed(
+        AppRoutes.sketchChallenge,
+        arguments: _selectedLevel.promptId,
+      );
+      if (mounted && widget.repository != null) {
+        await _fetchLevels();
+      }
+    } finally {
+      if (mounted) {
+        _navigating = false;
+      }
     }
   }
 

@@ -51,7 +51,7 @@ class _KenaliHurufScreenState extends State<KenaliHurufScreen> {
   Future<void> _playBackgroundMusic() async {
     try {
       await _backgroundPlayer.setReleaseMode(ReleaseMode.loop);
-      await _backgroundPlayer.setVolume(0.10);
+      await _backgroundPlayer.setVolume(0.25);
       await _backgroundPlayer.play(AssetSource('backsound/sound_jelajah.mp3'));
     } catch (error) {
       debugPrint('[KenaliHuruf] background music error: $error');
@@ -210,8 +210,7 @@ class _KenaliHurufScreenState extends State<KenaliHurufScreen> {
                 Positioned.fill(
                   child: KenaliHurufSuccessPopup(
                     scale: s,
-                    onContinue: () =>
-                        setState(() => _showSuccessPopup = false),
+                    onContinue: () => setState(() => _showSuccessPopup = false),
                   ),
                 ),
               Positioned(

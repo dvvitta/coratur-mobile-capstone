@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -50,15 +51,17 @@ class RemoteSketchChallengeCompleteRepository
 
     final http.Response response;
     try {
-      response = await _client.post(
-        uri,
-        headers: {
-          HttpHeaders.contentTypeHeader: 'application/json',
-          HttpHeaders.acceptHeader: 'application/json',
-          HttpHeaders.authorizationHeader: 'Bearer $token',
-        },
-        body: jsonEncode(body),
-      );
+      response = await _client
+          .post(
+            uri,
+            headers: {
+              HttpHeaders.contentTypeHeader: 'application/json',
+              HttpHeaders.acceptHeader: 'application/json',
+              HttpHeaders.authorizationHeader: 'Bearer $token',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
     } on Object {
       throw const AppFailure(
         message: 'Tidak bisa menghubungi server. Periksa jaringan kamu.',

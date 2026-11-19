@@ -15,11 +15,30 @@ abstract final class AssetPaths {
   static const jelajahCilik = 'assets/images/jelajah cilik.png';
   static const jelajahPencil = 'assets/images/krayon jelajah.png';
   static const sketchToStory = 'assets/images/sketch-to-story.png';
-  static const creativeElephant = 'assets/images/Creative Learning with a Friendly Elephant.png';
-  static const drawingTablet = 'assets/images/Glossy Purple Drawing Tablet Icon.png';
-  static const imageUpload = 'assets/images/Glossy Purple Image Upload Icon.png';
+  static const creativeElephant =
+      'assets/images/Creative Learning with a Friendly Elephant.png';
+  static const drawingTablet =
+      'assets/images/Glossy Purple Drawing Tablet Icon.png';
+  static const imageUpload =
+      'assets/images/Glossy Purple Image Upload Icon.png';
   static const gajahUnggahGambar = 'assets/images/gajah unggah gambar.png';
+  static const gajahLupaSandi = 'assets/images/gajah lupa sandi.png';
   static const image21 = 'assets/images/image 21.png';
+  static const avatarKucing =
+      'assets/avatar/Kucing Kawaii Mengedip dengan Lonceng emas.png';
+  static const avatarPanda = 'assets/avatar/Panda Kawaii Memeluk Bambu.png';
+  static const avatarDinosaurus =
+      'assets/avatar/Dinosaurus Kawaii Mint dengan Awan Pastel.png';
+  static const avatarBebek =
+      'assets/avatar/Anak Bebek Kuning Ceria di Langit Lilac.png';
+  static const avatarPinguin =
+      'assets/avatar/Pinguin Kawaii Ceria di Langit Ungu.png';
+  static const avatarHamster =
+      'assets/avatar/Hamster Kawaii Memegang Biji Bunga Matahari.png';
+  static const avatarBeruang =
+      'assets/avatar/Beruang Kawaii Bertakhta di Langit Lavender.png';
+  static const avatarRubah =
+      'assets/avatar/Rubah Kawaii Mengintip di Awan Ungu.png';
   static const palette = 'assets/images/palette.png';
   static const missionApple = 'assets/images/apell.png';
   static const missionPalette = 'assets/images/palet misi.png';
@@ -27,6 +46,11 @@ abstract final class AssetPaths {
   static const missionStory = 'assets/images/gambar jadi cerita.png';
   static const userAvatar = 'assets/images/user_avatar.png';
   static const userAvatarLarge = 'assets/images/user_avatar_large.png';
+  static const cameraIcon = 'assets/images/Ikon Kamera Ungu Mengilap.png';
+  static const galleryIcon = 'assets/images/Ikon Galeri Foto Berlapis.png';
+  static const mascotAvatar =
+      'assets/images/Koala Ungu Ceria dengan Bintang.png';
+  static const tigerIdle = 'assets/images/tiger idle.png';
   static const badge = 'assets/logo/badge.png';
   static const star = 'assets/images/bintang.png';
   static const levelBackground = 'assets/images/background level.png';
@@ -53,6 +77,5 @@ abstract final class AssetPaths {
   // GIF
   static const gajahKacaPembesar =
       'assets/gif/Gajah Ungu Ceria dengan Kaca Pembesar.gif';
-  static const gajahHasilSketch =
-      'assets/gif/hasil sketch story.gif';
+  static const gajahHasilSketch = 'assets/gif/hasil sketch story.gif';
 }

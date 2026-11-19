@@ -54,10 +54,15 @@ class AppRouter {
       builder: (context, child) => MainNavigationShell(
         initialIndex: initialIndex,
         userName: current?.sessionStore.displayName,
+        profilePhoto: current?.sessionStore.profilePhoto,
+        onProfilePhotoChanged: (photo) => current?.updateProfilePhoto(photo),
         missionRepository:
             current?.missionRepository ?? const MockMissionRepository(),
         historyRepository: current?.historyRepository,
         onLogout: () => current?.sessionStore.clear(),
+        onJoinClassroom: current != null && current.apiBaseUrl.isNotEmpty
+            ? (code) => current.joinClassroom(code)
+            : null,
       ),
     );
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:curator/core/constants/asset_paths.dart';
 import 'package:curator/features/main/screens/main_navigation_shell.dart';
+import 'package:curator/features/profile/models/profile_photo.dart';
 
 void main() {
   testWidgets(
@@ -40,6 +42,38 @@ void main() {
 
       // Kembali ke Home dengan animasi smooth
       expect(find.text('Halo, Arka!'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'foto profil di Home selaras dengan foto profil yang aktif',
+    (tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      tester.view.physicalSize = const Size(412, 917);
+      tester.view.devicePixelRatio = 1;
+
+      final testPhoto = ProfilePhoto.builtIn(AssetPaths.avatarPanda);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MainNavigationShell(
+            profilePhoto: testPhoto,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Cek bahwa avatar di Home menampilkan avatar panda
+      final homeAvatarFinder = find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName == AssetPaths.avatarPanda,
+      );
+      expect(homeAvatarFinder, findsOneWidget);
     },
   );
 }

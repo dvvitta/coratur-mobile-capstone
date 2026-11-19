@@ -5,6 +5,8 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/breakpoints.dart';
 import '../../missions/models/mission_item.dart';
 import '../../missions/repositories/mission_repository.dart';
+import '../../profile/models/profile_photo.dart';
+import '../../profile/services/profile_photo_service.dart';
 import '../widgets/home_adventure_card.dart';
 import '../widgets/home_background.dart';
 import '../widgets/home_bottom_nav.dart';
@@ -17,11 +19,13 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     this.userName = 'Arka',
+    this.profilePhoto,
     this.missionRepository = const MockMissionRepository(),
     this.isEmbedded = false,
   });
 
   final String userName;
+  final ProfilePhoto? profilePhoto;
   final MissionRepository missionRepository;
   final bool isEmbedded;
 
@@ -32,12 +36,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<MissionItem> _missions = const [];
   var _missionsLoading = true;
+  ProfilePhoto? _localPhoto;
 
   @override
   void initState() {
     super.initState();
     _loadMissions();
+    if (widget.profilePhoto == null) {
+      ProfilePhotoService().load().then((p) {
+        if (mounted && p != null) setState(() => _localPhoto = p);
+      });
+    }
   }
+
+  ProfilePhoto? get _effectivePhoto => widget.profilePhoto ?? _localPhoto;
 
   Future<void> _loadMissions() async {
     try {
@@ -107,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       HomeHeader(
                         userName: widget.userName,
+                        profilePhoto: _effectivePhoto,
                         onNotification: _onNotification,
                       ),
                       Padding(

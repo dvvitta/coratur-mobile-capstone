@@ -36,9 +36,9 @@ class ProfileBottomNav extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () => Navigator.of(
-                  context,
-                ).pushReplacementNamed(AppRoutes.history),
+                onPressed: () =>
+                    Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.history),
                 icon: const Icon(
                   Icons.history_rounded,
                   color: Color(0xFF6D3FE0),

@@ -18,9 +18,13 @@ class HistoryFilterTabs extends StatelessWidget {
   final ValueChanged<HistoryFilter> onFilterChanged;
 
   static const _items = [
-    _FilterItem(HistoryFilter.semua,  'Semua',   Icons.grid_view_rounded),
-    _FilterItem(HistoryFilter.selesai,'Selesai', Icons.check_circle_outline_rounded),
-    _FilterItem(HistoryFilter.proses, 'Proses',  Icons.timelapse_rounded),
+    _FilterItem(HistoryFilter.semua, 'Semua', Icons.grid_view_rounded),
+    _FilterItem(
+      HistoryFilter.selesai,
+      'Selesai',
+      Icons.check_circle_outline_rounded,
+    ),
+    _FilterItem(HistoryFilter.proses, 'Proses', Icons.timelapse_rounded),
   ];
 
   @override
@@ -64,10 +68,10 @@ class _FilterPill extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  static const _activeColor   = Color(0xFF6C42F5);
+  static const _activeColor = Color(0xFF6C42F5);
   static const _inactiveColor = Colors.white;
-  static const _inactiveIcon  = Color(0xFF645091);
-  static const _inactiveText  = Color(0xFF7C719C);
+  static const _inactiveIcon = Color(0xFF645091);
+  static const _inactiveText = Color(0xFF7C719C);
 
   @override
   Widget build(BuildContext context) {

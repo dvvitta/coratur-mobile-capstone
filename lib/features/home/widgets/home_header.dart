@@ -2,16 +2,53 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/widgets/glass_surface.dart';
+import '../../profile/models/profile_photo.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({
     super.key,
     required this.userName,
+    this.profilePhoto,
     required this.onNotification,
   });
 
   final String userName;
+  final ProfilePhoto? profilePhoto;
   final VoidCallback onNotification;
+
+  Widget _buildAvatar() {
+    final activePhoto = profilePhoto;
+    final bytes = activePhoto?.bytes;
+    if (activePhoto != null && activePhoto.isCustom && bytes != null) {
+      return Image.memory(
+        bytes,
+        width: 52,
+        height: 52,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      );
+    }
+
+    final assetPath = activePhoto?.assetPath ?? AssetPaths.userAvatar;
+    return Image.asset(
+      assetPath,
+      width: 52,
+      height: 52,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => const SizedBox(
+        width: 52,
+        height: 52,
+        child: ColoredBox(
+          color: Color(0xFFFDF3DC),
+          child: Icon(
+            Icons.face_rounded,
+            color: Color(0xFF7042F5),
+            size: 26,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,24 +68,7 @@ class HomeHeader extends StatelessWidget {
               ),
             ],
             child: ClipOval(
-              child: Image.asset(
-                AssetPaths.userAvatar,
-                width: 52,
-                height: 52,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const SizedBox(
-                  width: 52,
-                  height: 52,
-                  child: ColoredBox(
-                    color: Color(0xFFFDF3DC),
-                    child: Icon(
-                      Icons.face_rounded,
-                      color: Color(0xFF7042F5),
-                      size: 26,
-                    ),
-                  ),
-                ),
-              ),
+              child: _buildAvatar(),
             ),
           ),
           const SizedBox(width: 12),

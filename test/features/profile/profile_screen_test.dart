@@ -151,4 +151,48 @@ void main() {
       expect(find.text('Terhubung'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'onJoinClassroom remote berhasil menghubungkan kelas dan guru aktual',
+    (tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      tester.view.physicalSize = const Size(412, 1055);
+      tester.view.devicePixelRatio = 1;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ProfileScreen(
+            onJoinClassroom: (code) async {
+              expect(code, 'KELD03');
+              return {
+                'className': 'Kelas B1 (Bintang)',
+                'teacherName': 'Guru: Bu Depitt',
+              };
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Kode Ruang Kelas'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('classroom_code_input')),
+        'KELD03',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('classroom_join_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Masukkan Kode Kelas'), findsNothing);
+      expect(find.text('Terhubung ke Kelas B1 (Bintang)'), findsOneWidget);
+      expect(find.text('Kelas B1 (Bintang)'), findsOneWidget);
+      expect(find.text('Guru: Bu Depitt'), findsOneWidget);
+    },
+  );
 }

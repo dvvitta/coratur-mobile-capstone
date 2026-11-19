@@ -18,6 +18,9 @@ class HistoryEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).height < 700;
+    final illustrationSize = compact ? 100.0 : 200.0;
+    final illustrationWidth = compact ? 150.0 : 220.0;
     return Center(
       child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
@@ -27,8 +30,8 @@ class HistoryEmptyState extends StatelessWidget {
           children: [
             // Ilustrasi krayon
             SizedBox(
-              width: 220,
-              height: 200,
+              width: illustrationWidth,
+              height: illustrationSize,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -50,14 +53,14 @@ class HistoryEmptyState extends StatelessWidget {
                     bottom: 10,
                     child: Image.asset(
                       AssetPaths.historyCrayon,
-                      width: 200,
+                      width: compact ? 160 : 200,
                       fit: BoxFit.contain,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: compact ? 8 : 20),
             const Text(
               'Belum ada karya, nih!',
               textAlign: TextAlign.center,
@@ -81,7 +84,7 @@ class HistoryEmptyState extends StatelessWidget {
 
             // Tombol hanya muncul jika koleksi benar-benar kosong
             if (onStartDrawing != null) ...[
-              const SizedBox(height: 24),
+              SizedBox(height: compact ? 10 : 24),
               SizedBox(
                 width: double.infinity,
                 height: 54,
