@@ -20,6 +20,7 @@ abstract final class AppRoutes {
   static const memprosesGambar = '/sketch-to-story/memproses';
   static const hasilSketchToStory = '/sketch-to-story/hasil';
   static const ceritaSketchToStory = '/sketch-to-story/cerita';
+  static const leaderboard = '/leaderboard';
   static const history = '/history';
   static const profile = '/profile';
   static const badges = '/badges';

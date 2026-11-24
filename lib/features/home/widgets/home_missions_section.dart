@@ -20,7 +20,9 @@ class HomeMissionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final completedCount = missions.where((mission) => mission.isCompleted).length;
+    final completedCount = missions
+        .where((mission) => mission.isCompleted)
+        .length;
     final progress = missions.isEmpty ? 0.0 : completedCount / missions.length;
 
     return Column(
@@ -88,26 +90,6 @@ class HomeMissionsSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      color: Color(0x99FFFFFF),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0x147042F5),
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 16,
-                      color: Color(0xFF7042F5),
-                    ),
-                  ),
                 ],
               ),
             ),

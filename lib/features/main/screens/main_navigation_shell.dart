@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/curator_bottom_nav.dart';
-import '../../history/screens/history_screen.dart';
 import '../../history/repositories/history_repository.dart';
+import '../../history/screens/history_screen.dart';
 import '../../home/screens/home_screen.dart';
+import '../../leaderboard/repositories/leaderboard_repository.dart';
+import '../../leaderboard/screens/leaderboard_screen.dart';
 import '../../missions/repositories/mission_repository.dart';
 import '../../profile/models/profile_photo.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../profile/services/profile_photo_service.dart';
 
+/// Shell navigasi utama: Home → Leaderboard → History → Profile.
+///
+/// Menggunakan [PageView] non-scrollable sehingga setiap halaman
+/// tetap hidup di memory selama shell aktif (preserves scroll state).
+/// [CuratorBottomNav] bergerak sesuai [_currentIndex].
 class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({
     super.key,
@@ -18,6 +25,7 @@ class MainNavigationShell extends StatefulWidget {
     this.onProfilePhotoChanged,
     this.missionRepository = const MockMissionRepository(),
     this.historyRepository,
+    this.leaderboardRepository = const MockLeaderboardRepository(),
     this.onLogout,
     this.onJoinClassroom,
   });
@@ -28,6 +36,7 @@ class MainNavigationShell extends StatefulWidget {
   final ValueChanged<ProfilePhoto>? onProfilePhotoChanged;
   final MissionRepository missionRepository;
   final HistoryRepository? historyRepository;
+  final LeaderboardRepository leaderboardRepository;
   final VoidCallback? onLogout;
   final Future<Map<String, String>?> Function(String code)? onJoinClassroom;
 
@@ -39,6 +48,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   late int _currentIndex;
   late final PageController _pageController;
   ProfilePhoto? _activePhoto;
+
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   @override
   void initState() {
@@ -71,17 +82,19 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     super.dispose();
   }
 
+  // ── Actions ───────────────────────────────────────────────────────────────
+
   void _onTabSelected(int index) {
     if (_currentIndex == index) return;
-    setState(() {
-      _currentIndex = index;
-    });
+    setState(() => _currentIndex = index);
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
   }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -93,17 +106,28 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: [
+          // Index 0 — Home
           HomeScreen(
             isEmbedded: true,
             userName: name,
             profilePhoto: _activePhoto,
             missionRepository: widget.missionRepository,
           ),
+
+          // Index 1 — Leaderboard
+          LeaderboardScreen(
+            isEmbedded: true,
+            repository: widget.leaderboardRepository,
+          ),
+
+          // Index 2 — History
           HistoryScreen(
             isEmbedded: true,
             userName: name,
             repository: widget.historyRepository,
           ),
+
+          // Index 3 — Profile
           ProfileScreen(
             isEmbedded: true,
             userName: name,

@@ -24,7 +24,7 @@ class HistoryEmptyState extends StatelessWidget {
     return Center(
       child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(24, 0, 24, isEmbedded ? 110 : 24),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

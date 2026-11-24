@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_routes.dart';
+import '../core/widgets/curator_bottom_nav.dart';
 import '../core/widgets/structure_placeholder_page.dart';
 import '../features/authentication/controllers/auth_controller.dart';
 import '../features/authentication/models/auth_tab.dart';
@@ -97,7 +98,8 @@ class AppRouter {
         authRepository: dependencies?.authRepository,
       );
     },
-    AppRoutes.home: (_) => _mainRoute(0),
+    AppRoutes.home: (_) => _mainRoute(NavIndex.home),
+    AppRoutes.leaderboard: (_) => _mainRoute(NavIndex.leaderboard),
     AppRoutes.missions: (_) => MissionsScreen(
       repository:
           dependencies?.missionRepository ?? const MockMissionRepository(),
@@ -143,8 +145,8 @@ class AppRouter {
         cerita: cerita ?? CeritaModel.mock(),
       );
     },
-    AppRoutes.history: (_) => _mainRoute(1),
-    AppRoutes.profile: (_) => _mainRoute(2),
+    AppRoutes.history: (_) => _mainRoute(NavIndex.history),
+    AppRoutes.profile: (_) => _mainRoute(NavIndex.profile),
     AppRoutes.badges: (_) => const BadgeCollectionScreen(),
     AppRoutes.teacher: (_) => const StructurePlaceholderPage(
       title: 'Area Guru',

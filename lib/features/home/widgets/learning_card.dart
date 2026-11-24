@@ -98,19 +98,6 @@ class LearningCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: const BoxDecoration(
-                        color: Color(0x8CFFFFFF),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.chevron_right_rounded,
-                        size: 16,
-                        color: accentColor,
-                      ),
-                    ),
                   ],
                 ),
               ],

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../badges/screens/badge_collection_screen.dart';
 import '../models/profile_photo.dart';
 import '../services/profile_photo_service.dart';
 import '../widgets/change_profile_photo_sheet.dart';
@@ -275,15 +276,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         bottomNavigationBar: widget.isEmbedded
             ? null
             : CuratorBottomNav(
-                selectedIndex: 2,
-                onDestinationSelected: (index) {
-                  if (index == 0) {
-                    Navigator.of(context).pushNamed(AppRoutes.home);
-                  }
-                  if (index == 1) {
-                    Navigator.of(context).pushNamed(AppRoutes.history);
-                  }
-                },
+                selectedIndex: NavIndex.profile,
+                onDestinationSelected: (index) =>
+                    CuratorBottomNav.navigateTo(context, index),
               ),
         body: HomeBackground(
           child: ScrollConfiguration(
@@ -326,7 +321,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       stars: _stars,
                       badges: _badges,
                       onBadgesTap: () {
-                        Navigator.of(context).pushNamed(AppRoutes.badges);
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const BadgeCollectionScreen(),
+                          ),
+                        );
                       },
                     ),
                   ),

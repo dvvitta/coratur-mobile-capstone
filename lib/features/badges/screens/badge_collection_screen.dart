@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_routes.dart';
 import '../../../core/widgets/curator_bottom_nav.dart';
 import '../../home/widgets/home_background.dart';
 import '../models/badge_item.dart';
@@ -45,12 +44,9 @@ class _BadgeCollectionScreenState extends State<BadgeCollectionScreen> {
       backgroundColor: HomeBackground.baseColor,
       extendBody: true,
       bottomNavigationBar: CuratorBottomNav(
-        selectedIndex: 2,
-        onDestinationSelected: (index) {
-          if (index == 0) Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-          if (index == 1) Navigator.of(context).pushReplacementNamed(AppRoutes.history);
-          if (index == 2) Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
-        },
+        selectedIndex: NavIndex.profile,
+        onDestinationSelected: (index) =>
+            CuratorBottomNav.navigateTo(context, index),
       ),
       body: HomeBackground(
         child: SafeArea(

@@ -24,6 +24,8 @@ abstract final class AssetPaths {
   static const gajahUnggahGambar = 'assets/images/gajah unggah gambar.png';
   static const gajahLupaSandi = 'assets/images/gajah lupa sandi.png';
   static const image21 = 'assets/images/image 21.png';
+  static const avatarBoy = 'assets/avatar/avatar_boy.png';
+  static const avatarGirl = 'assets/avatar/avatar_girl.png';
   static const avatarKucing =
       'assets/avatar/Kucing Kawaii Mengedip dengan Lonceng emas.png';
   static const avatarPanda = 'assets/avatar/Panda Kawaii Memeluk Bambu.png';
@@ -50,7 +52,7 @@ abstract final class AssetPaths {
   static const galleryIcon = 'assets/images/Ikon Galeri Foto Berlapis.png';
   static const mascotAvatar =
       'assets/images/Koala Ungu Ceria dengan Bintang.png';
-  static const tigerIdle = 'assets/images/tiger idle.png';
+  static const tigerIdle = 'assets/karakter/tiger idle.png';
   static const badge = 'assets/logo/badge.png';
   static const star = 'assets/images/bintang.png';
   static const levelBackground = 'assets/images/background level.png';
@@ -73,6 +75,8 @@ abstract final class AssetPaths {
       'assets/sketch challenge/hewan/kura kura.svg';
 
   static const gajahCerita = 'assets/images/cerita.png';
+  static const gajahLead = 'assets/images/gajah lead.webp';
+  static const podiumLead = 'assets/images/podium lead.png';
 
   // GIF
   static const gajahKacaPembesar =

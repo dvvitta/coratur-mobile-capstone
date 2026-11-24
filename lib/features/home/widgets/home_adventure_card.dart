@@ -67,19 +67,6 @@ class HomeAdventureCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: Color(0x8CFFFFFF),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.chevron_right_rounded,
-              size: 22,
-              color: Color(0xFF7042F5),
-            ),
-          ),
         ],
       ),
     );

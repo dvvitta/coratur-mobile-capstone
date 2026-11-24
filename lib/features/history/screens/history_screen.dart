@@ -160,7 +160,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // ── Header ─────────────────────────────────────────────
-                _HistoryHeader(onBack: () => Navigator.of(context).pop()),
+                const _HistoryHeader(),
                 const SizedBox(height: 12),
 
                 // ── Achievement card ───────────────────────────────────
@@ -213,74 +213,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _HistoryHeader extends StatelessWidget {
-  const _HistoryHeader({required this.onBack});
-  final VoidCallback onBack;
+  const _HistoryHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: Stack(
-        alignment: Alignment.center,
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Back button kiri
-          Align(
-            alignment: Alignment.centerLeft,
-            child: _CircleBackButton(onTap: onBack),
+          Text(
+            'Karya Hebatku',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1E1B4B),
+              letterSpacing: -0.4,
+            ),
           ),
-
-          // Title + subtitle tengah
-          const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Karya Hebatku',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1E1B4B),
-                  letterSpacing: -0.4,
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Semua hasil kreativitasmu ada di sini',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF7C719C),
-                ),
-              ),
-            ],
+          SizedBox(height: 2),
+          Text(
+            'Semua hasil kreativitasmu ada di sini',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF7C719C),
+            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _CircleBackButton extends StatelessWidget {
-  const _CircleBackButton({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.85),
-      shape: const CircleBorder(),
-      elevation: 0,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: const SizedBox(
-          width: 44,
-          height: 44,
-          child: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Color(0xFF7C4DFF),
-            size: 20,
-          ),
-        ),
       ),
     );
   }
